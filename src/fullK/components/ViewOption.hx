@@ -15,6 +15,7 @@ typedef HitArea = {
     var r: Float;
     var b: Float;
 }
+<<<<<<< HEAD
 @:enum
 abstract OptionType( Int ) to Int from Int {
     var ROUND           = 0;
@@ -24,6 +25,16 @@ abstract OptionType( Int ) to Int from Int {
     var ROUND_TICK      = 4;
     var TRIANGLE        = 5;
     var TRIANGLE_TICK   = 6;
+=======
+enum OptionType {
+    ROUND;
+    SQUARE;
+    CROSS;
+    TICK;
+    ROUND_TICK;
+    TRIANGLE;
+    TRIANGLE_TICK;
+>>>>>>> 641f303c4b7e2f4ba1226d02946de0c74c78cbba
 }
 class ViewOptions {
     public var visible: Bool = true;

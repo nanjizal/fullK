@@ -17,6 +17,7 @@ class MainApp extends fullK.MainTemplate{ public static function main() MainTemp
         option.labels       = [ 'ROUND','SQUARE','CROSS','TICK','ROUND_TICK','TRIANGLE', 'TRIANGLE_TICK' ];
         option.optionChange = function( id: Int, state: Array<Bool> ){
             switch( id ){
+<<<<<<< HEAD
                 case ROUND:
                     option.optionType = ROUND;
                     option.updateState( 0 );
@@ -31,6 +32,22 @@ class MainApp extends fullK.MainTemplate{ public static function main() MainTemp
                 case TRIANGLE:
                     option.optionType = TRIANGLE;
                 case TRIANGLE_TICK:
+=======
+                case 0:
+                    option.optionType = ROUND;
+                    option.updateState( 0 );
+                case 1:
+                    option.optionType = SQUARE;
+                case 2: 
+                    option.optionType = CROSS;
+                case 3: 
+                    option.optionType = TICK;
+                case 4:
+                    option.optionType = ROUND_TICK;
+                case 5:
+                    option.optionType = TRIANGLE;
+                case 6:
+>>>>>>> 641f303c4b7e2f4ba1226d02946de0c74c78cbba
                     option.optionType = TRIANGLE_TICK;
             }
         }
