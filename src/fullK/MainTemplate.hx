@@ -50,6 +50,14 @@ class MainTemplate {
     function down(){
         trace( 'override down' );
     }
+    public
+    function up(){
+        trace( 'override up' );
+    }
+    public 
+    function move(){
+        trace( 'override move' );
+    }
     public static 
     function main() {
         FullScreen.setup();
@@ -76,7 +84,9 @@ class MainTemplate {
         interaction          = new Interaction();
         frameStats           = new FrameStats( interaction );
         interaction.dnMouse  = down;
+        interaction.upMouse  = up;
         interaction.over     = over;
+        interaction.move     = move;
         setup();
         startRendering();
     }

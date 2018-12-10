@@ -133,13 +133,21 @@ fullK_MainTemplate.prototype = {
 	,down: function() {
 		haxe_Log.trace("override down",{ fileName : "fullK/MainTemplate.hx", lineNumber : 51, className : "fullK.MainTemplate", methodName : "down"});
 	}
+	,up: function() {
+		haxe_Log.trace("override up",{ fileName : "fullK/MainTemplate.hx", lineNumber : 55, className : "fullK.MainTemplate", methodName : "up"});
+	}
+	,move: function() {
+		haxe_Log.trace("override move",{ fileName : "fullK/MainTemplate.hx", lineNumber : 59, className : "fullK.MainTemplate", methodName : "move"});
+	}
 	,loadAll: function() {
 		window.dispatchEvent(new Event("resize"));
 		this.font = kha_Assets.fonts.OpenSans_Regular;
 		this.interaction = new fullK_Interaction();
 		this.frameStats = new fullK_FrameStats(this.interaction);
 		this.interaction.dnMouse = $bind(this,this.down);
+		this.interaction.upMouse = $bind(this,this.up);
 		this.interaction.over = $bind(this,this.over);
+		this.interaction.move = $bind(this,this.move);
 		this.setup();
 		var _gthis = this;
 		kha_System.notifyOnFrames(function(framebuffer) {
@@ -312,7 +320,8 @@ fullK_MainTemplate.prototype = {
 	,__class__: fullK_MainTemplate
 };
 var MainApp = function() {
-	this.option = new fullK_components_ViewOptions(300,100);
+	this.sliders = new fullK_components_SliderBars(100,200);
+	this.options = new fullK_components_ViewOptions(300,100);
 	fullK_MainTemplate.call(this);
 };
 $hxClasses["MainApp"] = MainApp;
@@ -322,57 +331,86 @@ MainApp.main = function() {
 };
 MainApp.__super__ = fullK_MainTemplate;
 MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
-	option: null
+	options: null
+	,sliders: null
 	,setup: function() {
-		haxe_Log.trace("setup",{ fileName : "MainApp.hx", lineNumber : 10, className : "MainApp", methodName : "setup"});
+		haxe_Log.trace("setup",{ fileName : "MainApp.hx", lineNumber : 12, className : "MainApp", methodName : "setup"});
 		this.frameStatGreySkin();
-		this.createOption();
+		this.setupOptions();
+		this.setupSliderBars();
 	}
-	,createOption: function() {
+	,setupOptions: function() {
 		var _gthis = this;
-		this.option.optionType = 0;
-		this.option.state = [true,false,false,false,false,false,false];
-		this.option.labels = ["ROUND","SQUARE","CROSS","TICK","ROUND_TICK","TRIANGLE","TRIANGLE_TICK"];
-		this.option.optionChange = function(id,state) {
+		this.options.optionType = 0;
+		this.options.state = [true,false,false,false,false,false,false];
+		this.options.labels = ["ROUND","SQUARE","CROSS","TICK","ROUND_TICK","TRIANGLE","TRIANGLE_TICK"];
+		this.options.optionChange = function(id,state) {
 			switch(id) {
 			case 0:
-				_gthis.option.optionType = 0;
-				_gthis.option.updateState(0);
+				_gthis.options.optionType = 0;
+				_gthis.sliders.optionType = 0;
+				_gthis.options.updateState(0);
 				break;
 			case 1:
-				_gthis.option.optionType = 1;
+				_gthis.options.optionType = 1;
+				_gthis.sliders.optionType = 1;
 				break;
 			case 2:
-				_gthis.option.optionType = 2;
+				_gthis.options.optionType = 2;
+				_gthis.sliders.optionType = 1;
 				break;
 			case 3:
-				_gthis.option.optionType = 3;
+				_gthis.options.optionType = 3;
+				_gthis.sliders.optionType = 1;
 				break;
 			case 4:
-				_gthis.option.optionType = 4;
+				_gthis.options.optionType = 4;
+				_gthis.sliders.optionType = 0;
 				break;
 			case 5:
-				_gthis.option.optionType = 5;
+				_gthis.options.optionType = 5;
+				_gthis.sliders.optionType = 5;
 				break;
 			case 6:
-				_gthis.option.optionType = 6;
+				_gthis.options.optionType = 6;
+				_gthis.sliders.optionType = 5;
 				break;
 			}
 		};
-		this.option.optionOver = function(id1) {
-			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 37, className : "MainApp", methodName : "createOption"});
+		this.options.optionOver = function(id1) {
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 47, className : "MainApp", methodName : "setupOptions"});
+		};
+	}
+	,setupSliderBars: function() {
+		this.sliders.slidees = [{ min : 0., max : 100., value : 50., clampInteger : true},{ min : 0., max : 200., value : 50., flip : false},{ min : 0., max : 1., value : 0.3, flip : true}];
+		this.sliders.widths = [150,150,150];
+		this.sliders.sliderOver = function(id) {
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 54, className : "MainApp", methodName : "setupSliderBars"});
+		};
+		this.sliders.sliderChange = function(id1,value) {
+			haxe_Log.trace("slidee " + id1 + ": " + value,{ fileName : "MainApp.hx", lineNumber : 55, className : "MainApp", methodName : "setupSliderBars"});
 		};
 	}
 	,over: function() {
-		this.option.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		this.options.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		this.sliders.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+	}
+	,move: function() {
+		this.options.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		this.sliders.hitOver(this.interaction.mouseX,this.interaction.mouseY);
 	}
 	,down: function() {
-		this.option.hitCheck(this.interaction.mouseX,this.interaction.mouseY);
+		this.options.hitCheck(this.interaction.mouseX,this.interaction.mouseY);
+		this.sliders.hitCheck(this.interaction.mouseX,this.interaction.mouseY);
+	}
+	,up: function() {
+		this.sliders.upCheck(this.interaction.mouseX,this.interaction.mouseY);
 	}
 	,render2D: function(g2) {
 		g2.drawRect(100,100,100,30);
 		g2.drawString("hello world",105,105);
-		this.option.renderView(g2);
+		this.options.renderView(g2);
+		this.sliders.renderView(g2);
 	}
 	,__class__: MainApp
 });
@@ -645,6 +683,9 @@ fullK_Interaction.prototype = {
 			}
 		};
 		this.over = function() {
+			if(_gthis.canTrace) {
+				haxe_Log.trace("mouse over" + _gthis.mouseX + ", " + _gthis.mouseY,{ fileName : "fullK/Interaction.hx", lineNumber : 49, className : "fullK.Interaction", methodName : "traceListeners"});
+			}
 		};
 		this.upMouse = function() {
 			if(_gthis.canTrace) {
@@ -856,6 +897,426 @@ fullK_browser_FullScreen.setup = function() {
 	win.onresize = resize;
 	resize();
 };
+var fullK_components_Common = function() {
+	this.gapH = 16.;
+	this.gapW = 20.;
+	this.thick = 1.5;
+	this.radiusInner = 4.;
+	this.radiusOutline = 10.;
+	this.dia = this.radiusOutline * 2;
+	this.diaInner = this.radiusInner * 2;
+};
+$hxClasses["fullK.components.Common"] = fullK_components_Common;
+fullK_components_Common.__name__ = true;
+fullK_components_Common.prototype = {
+	radiusOutline: null
+	,radiusInner: null
+	,thick: null
+	,gapW: null
+	,gapH: null
+	,dia: null
+	,diaInner: null
+	,circleOut: function(g,cx,cy) {
+		kha_graphics2_GraphicsExtension.drawCircle(g,cx,cy,this.radiusOutline,this.thick);
+	}
+	,squareOut: function(g,cx,cy) {
+		g.drawRect(cx - this.radiusOutline,cy - this.radiusOutline,this.dia,this.dia,this.thick);
+	}
+	,triangleUpOut: function(g,cx,cy) {
+		g.drawLine(cx - this.radiusOutline,cy + this.radiusOutline,cx,cy - this.radiusOutline);
+		g.drawLine(cx,cy - this.radiusOutline,cx + this.radiusOutline,cy + this.radiusOutline);
+		g.drawLine(cx + this.radiusOutline,cy + this.radiusOutline,cx - this.radiusOutline,cy + this.radiusOutline);
+	}
+	,cross: function(g,cx,cy) {
+		var cx_ = cx - this.thick;
+		var cy_ = cy - this.thick;
+		g.drawLine(cx_ - this.radiusInner,cy_ - this.radiusInner,cx_ + this.diaInner,cy_ + this.diaInner,this.thick * 2);
+		g.drawLine(cx_ - this.radiusInner,cy_ + this.diaInner,cx_ + this.diaInner,cy_ - this.radiusInner,this.thick * 2);
+	}
+	,tick: function(g,cx,cy) {
+		var cx_ = cx - this.thick;
+		var cy_ = cy - this.thick;
+		var r_3 = this.radiusInner / 3;
+		var t2 = this.thick * 2;
+		g.drawLine(cx_ - r_3,cy_ + this.diaInner,cx_ + this.diaInner,cy_ - this.radiusInner,t2);
+		g.drawLine(cx_ - r_3,cy_ + this.diaInner,cx_ - this.radiusInner,cy_ + this.radiusInner / 2,t2);
+	}
+	,tickRight: function(g,cx,cy) {
+		var cx_ = cx + this.radiusInner / 2 - this.thick;
+		var cy_ = cy - this.thick;
+		var r_3 = this.radiusInner / 3;
+		var t2 = this.thick * 2;
+		g.drawLine(cx_ - r_3,cy_ + this.diaInner,cx_ + this.diaInner,cy_ - this.radiusInner,t2);
+		g.drawLine(cx_ - r_3,cy_ + this.diaInner,cx_ - this.radiusInner,cy_ + this.radiusInner / 2,t2);
+	}
+	,circleIn: function(g,cx,cy) {
+		kha_graphics2_GraphicsExtension.fillCircle(g,cx,cy,this.radiusInner);
+	}
+	,squareIn: function(g,cx,cy) {
+		g.fillRect(cx - this.radiusInner,cy - this.radiusInner,this.diaInner,this.diaInner);
+	}
+	,triangleUpIn: function(g,cx,cy) {
+		g.fillTriangle(cx - this.radiusInner,cy + this.radiusInner * 1.5,cx,cy - this.radiusInner * 0.5,cx + this.radiusInner,cy + 1.5 * this.radiusInner);
+	}
+	,horiLine: function(g,cx,cy,width) {
+		g.drawLine(cx,cy + this.thick / 2,cx + width,cy + this.thick / 2,this.thick);
+	}
+	,hitAreaRender: function(i,highlight,g,cx,cy,wid) {
+		var dx = cx - this.radiusOutline - this.thick;
+		var dy = cy - this.radiusOutline - this.thick;
+		var dw = wid + this.thick * 2;
+		var dr = dx + dw;
+		var dh = this.dia + this.thick * 2;
+		var db = dy + dh;
+		if(highlight == i) {
+			g.set_opacity(0.1);
+			g.set_color(-65536);
+		} else {
+			g.set_opacity(0.05);
+		}
+		g.fillRect(dx,dy,dw,dh);
+		if(highlight == i) {
+			g.set_color(-1);
+		}
+		g.set_opacity(1.);
+		return { x : dx, y : dy, r : dr, b : db};
+	}
+	,dy: function() {
+		return this.dia + this.gapH;
+	}
+	,__class__: fullK_components_Common
+};
+var fullK_components_SliderBars = function(x_,y_) {
+	if(y_ == null) {
+		y_ = 100;
+	}
+	if(x_ == null) {
+		x_ = 100;
+	}
+	this.hitArea = [];
+	this.common = new fullK_components_Common();
+	this.gapH = 16.;
+	this.y = 100.;
+	this.x = 100.;
+	this.visible = true;
+	this.highlight = -1;
+	this.optionType = 1;
+	this.dragging = false;
+	this.x = x_;
+	this.y = y_;
+};
+$hxClasses["fullK.components.SliderBars"] = fullK_components_SliderBars;
+fullK_components_SliderBars.__name__ = true;
+fullK_components_SliderBars.prototype = {
+	dragging: null
+	,optionType: null
+	,highlight: null
+	,visible: null
+	,x: null
+	,y: null
+	,gapH: null
+	,common: null
+	,widths: null
+	,slidees: null
+	,hitArea: null
+	,sliderOver: null
+	,sliderChange: null
+	,lastHit: null
+	,lastX: null
+	,lastY: null
+	,renderView: function(g) {
+		if(this.visible == false) {
+			return;
+		}
+		if(this.widths == null) {
+			return;
+		}
+		var cx = this.x;
+		var cy = this.y;
+		var wid;
+		var slidee;
+		var pos;
+		var _g = 0;
+		var _g1 = this.widths.length;
+		while(_g < _g1) {
+			var i = _g++;
+			wid = this.widths[i];
+			var _this = this.common;
+			g.drawLine(cx,cy + _this.thick / 2,cx + wid,cy + _this.thick / 2,_this.thick);
+			slidee = this.slidees[i];
+			var min;
+			var max;
+			var flip = slidee.flip;
+			if(flip == null) {
+				slidee.flip = false;
+			}
+			if(slidee.clampInteger == null) {
+				slidee.clampInteger = false;
+			}
+			var min1 = slidee.min;
+			var max1 = slidee.max;
+			if(min1 > max1) {
+				slidee.min = max1;
+				slidee.max = min1;
+				min1 = slidee.min;
+				max1 = slidee.max;
+			}
+			var dw = max1 - min1;
+			var dif = wid / dw;
+			var value = slidee.value;
+			var dValue;
+			if(!flip) {
+				dValue = value - min1;
+			} else {
+				dValue = max1 - value - min1;
+			}
+			var dx = dValue * dif;
+			if(dx < 0.1) {
+				dx = 0.;
+			}
+			if(dx > wid - 0.1) {
+				dx = wid;
+			}
+			pos = cx + dx;
+			if(slidee.clampInteger) {
+				g.drawString(Std.string(Math.round(slidee.value)),pos + this.common.radiusOutline,cy - this.common.gapH - this.common.radiusInner);
+			} else {
+				g.drawString(Std.string(Math.round(slidee.value * 100) / 100),pos + this.common.radiusOutline,cy - this.common.gapH - this.common.radiusInner);
+			}
+			this.renderSlidee(g,pos,cy);
+			var tmp = this.hitArea;
+			var _this1 = this.common;
+			var highlight = this.highlight;
+			var dx1 = cx - _this1.radiusOutline - _this1.thick;
+			var dy = cy - _this1.radiusOutline - _this1.thick;
+			var dw1 = wid + this.common.dia + _this1.thick * 2;
+			var dr = dx1 + dw1;
+			var dh = _this1.dia + _this1.thick * 2;
+			var db = dy + dh;
+			if(highlight == i) {
+				g.set_opacity(0.1);
+				g.set_color(-65536);
+			} else {
+				g.set_opacity(0.05);
+			}
+			g.fillRect(dx1,dy,dw1,dh);
+			if(highlight == i) {
+				g.set_color(-1);
+			}
+			g.set_opacity(1.);
+			tmp[i] = { x : dx1, y : dy, r : dr, b : db};
+			var _this2 = this.common;
+			cy += _this2.dia + _this2.gapH;
+		}
+	}
+	,slideePos: function(slidee,cx,width) {
+		var min;
+		var max;
+		var flip = slidee.flip;
+		if(flip == null) {
+			slidee.flip = false;
+		}
+		if(slidee.clampInteger == null) {
+			slidee.clampInteger = false;
+		}
+		var min1 = slidee.min;
+		var max1 = slidee.max;
+		if(min1 > max1) {
+			slidee.min = max1;
+			slidee.max = min1;
+			min1 = slidee.min;
+			max1 = slidee.max;
+		}
+		var dw = max1 - min1;
+		var dif = width / dw;
+		var value = slidee.value;
+		var dValue;
+		if(!flip) {
+			dValue = value - min1;
+		} else {
+			dValue = max1 - value - min1;
+		}
+		var dx = dValue * dif;
+		if(dx < 0.1) {
+			dx = 0.;
+		}
+		if(dx > width - 0.1) {
+			dx = width;
+		}
+		return cx + dx;
+	}
+	,renderSlidee: function(g,cx,cy) {
+		switch(this.optionType) {
+		case 1:case 2:case 3:
+			var _this = this.common;
+			g.fillRect(cx - _this.radiusInner,cy + this.common.thick / 4 - _this.radiusInner,_this.diaInner,_this.diaInner);
+			break;
+		case 0:case 4:
+			kha_graphics2_GraphicsExtension.fillCircle(g,cx,cy + this.common.thick / 4,this.common.radiusInner);
+			break;
+		case 5:case 6:
+			var _this1 = this.common;
+			var cy1 = cy - this.common.thick - this.common.thick / 4;
+			g.fillTriangle(cx - _this1.radiusInner,cy1 + _this1.radiusInner * 1.5,cx,cy1 - _this1.radiusInner * 0.5,cx + _this1.radiusInner,cy1 + 1.5 * _this1.radiusInner);
+			break;
+		}
+	}
+	,updateValue: function(hit,px,py) {
+		var slidee = this.slidees[hit];
+		var wid = this.widths[hit];
+		var dx = px - this.x;
+		var dw = slidee.max - slidee.min;
+		var dif = dw / wid;
+		var value;
+		if(!slidee.flip) {
+			value = slidee.min + dx * dif;
+		} else {
+			value = slidee.min + (wid - dx) * dif;
+		}
+		if(value > slidee.max) {
+			value = slidee.max;
+		}
+		if(value < slidee.min) {
+			value = slidee.min;
+		}
+		slidee.value = value;
+		return value;
+	}
+	,hitOver: function(px,py) {
+		var area;
+		var hit = -1;
+		var _g = 0;
+		var _g1 = this.hitArea.length;
+		while(_g < _g1) {
+			var i = _g++;
+			area = this.hitArea[i];
+			if(px > area.x && px < area.r && py > area.y && py < area.b) {
+				hit = i;
+				break;
+			}
+		}
+		var hit1 = hit;
+		if(hit1 != -1) {
+			if(this.sliderOver != null) {
+				this.highlight = hit1;
+				this.sliderOver(hit1);
+			}
+			if(this.dragging) {
+				if(this.sliderChange != null) {
+					var value = this.updateValue(hit1,px,py);
+					var clamp = this.slidees[hit1].clampInteger;
+					if(clamp) {
+						value = Math.round(value);
+					}
+					if(!(this.lastHit == hit1 && this.lastX == px && this.lastY == py)) {
+						this.sliderChange(hit1,value);
+						this.lastX = px;
+						this.lastY = py;
+						this.lastHit = hit1;
+					}
+				}
+			}
+		} else {
+			this.highlight = -1;
+			this.dragging = false;
+		}
+	}
+	,upCheck: function(px,py) {
+		var area;
+		var hit = -1;
+		var _g = 0;
+		var _g1 = this.hitArea.length;
+		while(_g < _g1) {
+			var i = _g++;
+			area = this.hitArea[i];
+			if(px > area.x && px < area.r && py > area.y && py < area.b) {
+				hit = i;
+				break;
+			}
+		}
+		var hit1 = hit;
+		if(hit1 != -1) {
+			if(this.dragging) {
+				if(this.sliderChange != null) {
+					var value = this.updateValue(hit1,px,py);
+					var clamp = this.slidees[hit1].clampInteger;
+					if(clamp) {
+						value = Math.round(value);
+					}
+					if(!(this.lastHit == hit1 && this.lastX == px && this.lastY == py)) {
+						this.sliderChange(hit1,value);
+						this.lastX = px;
+						this.lastY = py;
+						this.lastHit = hit1;
+					}
+				}
+			}
+		}
+		this.dragging = false;
+	}
+	,hitCheck: function(px,py) {
+		var area;
+		var hit = -1;
+		var _g = 0;
+		var _g1 = this.hitArea.length;
+		while(_g < _g1) {
+			var i = _g++;
+			area = this.hitArea[i];
+			if(px > area.x && px < area.r && py > area.y && py < area.b) {
+				hit = i;
+				break;
+			}
+		}
+		var hit1 = hit;
+		if(hit1 != -1) {
+			if(this.sliderChange != null) {
+				var value = this.updateValue(hit1,px,py);
+				var clamp = this.slidees[hit1].clampInteger;
+				if(clamp) {
+					value = Math.round(value);
+				}
+				if(!(this.lastHit == hit1 && this.lastX == px && this.lastY == py)) {
+					this.sliderChange(hit1,value);
+					this.lastX = px;
+					this.lastY = py;
+					this.lastHit = hit1;
+				}
+			}
+			this.dragging = true;
+		}
+	}
+	,updateSlider: function(hit,px,py) {
+		if(this.sliderChange != null) {
+			var value = this.updateValue(hit,px,py);
+			var clamp = this.slidees[hit].clampInteger;
+			if(clamp) {
+				value = Math.round(value);
+			}
+			if(!(this.lastHit == hit && this.lastX == px && this.lastY == py)) {
+				this.sliderChange(hit,value);
+				this.lastX = px;
+				this.lastY = py;
+				this.lastHit = hit;
+			}
+		}
+	}
+	,hitTest: function(px,py) {
+		var area;
+		var hit = -1;
+		var _g = 0;
+		var _g1 = this.hitArea.length;
+		while(_g < _g1) {
+			var i = _g++;
+			area = this.hitArea[i];
+			if(px > area.x && px < area.r && py > area.y && py < area.b) {
+				hit = i;
+				break;
+			}
+		}
+		return hit;
+	}
+	,__class__: fullK_components_SliderBars
+};
 var fullK_components_ViewOptions = function(x_,y_) {
 	if(y_ == null) {
 		y_ = 100;
@@ -863,7 +1324,7 @@ var fullK_components_ViewOptions = function(x_,y_) {
 	if(x_ == null) {
 		x_ = 100;
 	}
-	this.highlight = -1;
+	this.common = new fullK_components_Common();
 	this.hitArea = [];
 	this.gapH = 16.;
 	this.gapW = 20.;
@@ -873,6 +1334,7 @@ var fullK_components_ViewOptions = function(x_,y_) {
 	this.radiusInner = 4.;
 	this.radiusOutline = 10.;
 	this.optionType = 1;
+	this.highlight = -1;
 	this.visible = true;
 	this.x = x_;
 	this.y = y_;
@@ -881,6 +1343,7 @@ $hxClasses["fullK.components.ViewOptions"] = fullK_components_ViewOptions;
 fullK_components_ViewOptions.__name__ = true;
 fullK_components_ViewOptions.prototype = {
 	visible: null
+	,highlight: null
 	,optionType: null
 	,radiusOutline: null
 	,radiusInner: null
@@ -894,6 +1357,7 @@ fullK_components_ViewOptions.prototype = {
 	,labels: null
 	,hitArea: null
 	,state: null
+	,common: null
 	,renderView: function(g) {
 		if(this.visible == false) {
 			return;
@@ -907,106 +1371,212 @@ fullK_components_ViewOptions.prototype = {
 		var label;
 		var fontWid;
 		var dia = this.radiusOutline * 2;
-		var diaInner = this.radiusInner * 2;
-		var dx;
-		var dy;
-		var dw;
-		var dh;
-		var dr;
-		var db;
+		this.common.gapW = this.gapW;
+		this.common.gapH = this.gapH;
 		var _g = 0;
 		var _g1 = this.labels.length;
 		while(_g < _g1) {
 			var i = _g++;
 			label = this.labels[i];
 			fontWid = font.width(size,label);
-			dx = cx - this.radiusOutline - this.thick;
-			dy = cy - this.radiusOutline - this.thick;
-			dw = fontWid + this.gapW + dia * 2 + this.thick * 2;
-			dr = dx + dw;
-			dh = dia + this.thick * 2;
-			db = dy + dh;
-			this.hitArea[i] = { x : dx, y : dy, r : dr, b : db};
-			if(this.highlight == i) {
+			var tmp = this.hitArea;
+			var _this = this.common;
+			var highlight = this.highlight;
+			var dx = cx - _this.radiusOutline - _this.thick;
+			var dy = cy - _this.radiusOutline - _this.thick;
+			var dw = fontWid + this.gapW + dia * 2 + _this.thick * 2;
+			var dr = dx + dw;
+			var dh = _this.dia + _this.thick * 2;
+			var db = dy + dh;
+			if(highlight == i) {
 				g.set_opacity(0.1);
 				g.set_color(-65536);
 			} else {
 				g.set_opacity(0.05);
 			}
 			g.fillRect(dx,dy,dw,dh);
-			if(this.highlight == i) {
+			if(highlight == i) {
 				g.set_color(-1);
 			}
 			g.set_opacity(1.);
+			tmp[i] = { x : dx, y : dy, r : dr, b : db};
+			g.set_opacity(1.);
 			switch(this.optionType) {
 			case 0:
-				kha_graphics2_GraphicsExtension.drawCircle(g,cx,cy,this.radiusOutline,this.thick);
+				var _this1 = this.common;
+				kha_graphics2_GraphicsExtension.drawCircle(g,cx,cy,_this1.radiusOutline,_this1.thick);
 				break;
 			case 1:
-				g.drawRect(cx - this.radiusOutline,cy - this.radiusOutline,dia,dia,this.thick);
+				var _this2 = this.common;
+				g.drawRect(cx - _this2.radiusOutline,cy - _this2.radiusOutline,_this2.dia,_this2.dia,_this2.thick);
 				break;
 			case 2:
-				g.drawRect(cx - this.radiusOutline,cy - this.radiusOutline,dia,dia,this.thick);
+				var _this3 = this.common;
+				g.drawRect(cx - _this3.radiusOutline,cy - _this3.radiusOutline,_this3.dia,_this3.dia,_this3.thick);
 				break;
 			case 3:
-				g.drawRect(cx - this.radiusOutline,cy - this.radiusOutline,dia,dia,this.thick);
+				var _this4 = this.common;
+				g.drawRect(cx - _this4.radiusOutline,cy - _this4.radiusOutline,_this4.dia,_this4.dia,_this4.thick);
 				break;
 			case 4:
-				kha_graphics2_GraphicsExtension.drawCircle(g,cx,cy,this.radiusOutline,this.thick);
+				var _this5 = this.common;
+				kha_graphics2_GraphicsExtension.drawCircle(g,cx,cy,_this5.radiusOutline,_this5.thick);
 				break;
 			case 5:
-				g.drawLine(cx - this.radiusOutline,cy + this.radiusOutline,cx,cy - this.radiusOutline);
-				g.drawLine(cx,cy - this.radiusOutline,cx + this.radiusOutline,cy + this.radiusOutline);
-				g.drawLine(cx + this.radiusOutline,cy + this.radiusOutline,cx - this.radiusOutline,cy + this.radiusOutline);
+				var _this6 = this.common;
+				g.drawLine(cx - _this6.radiusOutline,cy + _this6.radiusOutline,cx,cy - _this6.radiusOutline);
+				g.drawLine(cx,cy - _this6.radiusOutline,cx + _this6.radiusOutline,cy + _this6.radiusOutline);
+				g.drawLine(cx + _this6.radiusOutline,cy + _this6.radiusOutline,cx - _this6.radiusOutline,cy + _this6.radiusOutline);
 				break;
 			case 6:
-				g.drawLine(cx - this.radiusOutline,cy + this.radiusOutline,cx,cy - this.radiusOutline);
-				g.drawLine(cx,cy - this.radiusOutline,cx + this.radiusOutline,cy + this.radiusOutline);
-				g.drawLine(cx + this.radiusOutline,cy + this.radiusOutline,cx - this.radiusOutline,cy + this.radiusOutline);
+				var _this7 = this.common;
+				g.drawLine(cx - _this7.radiusOutline,cy + _this7.radiusOutline,cx,cy - _this7.radiusOutline);
+				g.drawLine(cx,cy - _this7.radiusOutline,cx + _this7.radiusOutline,cy + _this7.radiusOutline);
+				g.drawLine(cx + _this7.radiusOutline,cy + _this7.radiusOutline,cx - _this7.radiusOutline,cy + _this7.radiusOutline);
 				break;
 			}
 			if(this.state[i]) {
 				switch(this.optionType) {
 				case 0:
-					kha_graphics2_GraphicsExtension.fillCircle(g,cx,cy,this.radiusInner);
+					kha_graphics2_GraphicsExtension.fillCircle(g,cx,cy,this.common.radiusInner);
 					break;
 				case 1:
-					g.fillRect(cx - this.radiusInner,cy - this.radiusInner,diaInner,diaInner);
+					var _this8 = this.common;
+					g.fillRect(cx - _this8.radiusInner,cy - _this8.radiusInner,_this8.diaInner,_this8.diaInner);
 					break;
 				case 2:
-					var cx_ = cx - this.thick;
-					var cy_ = cy - this.thick;
-					g.drawLine(cx_ - this.radiusInner,cy_ - this.radiusInner,cx_ + diaInner,cy_ + diaInner,this.thick * 2);
-					g.drawLine(cx_ - this.radiusInner,cy_ + diaInner,cx_ + diaInner,cy_ - this.radiusInner,this.thick * 2);
+					var _this9 = this.common;
+					var cx_ = cx - _this9.thick;
+					var cy_ = cy - _this9.thick;
+					g.drawLine(cx_ - _this9.radiusInner,cy_ - _this9.radiusInner,cx_ + _this9.diaInner,cy_ + _this9.diaInner,_this9.thick * 2);
+					g.drawLine(cx_ - _this9.radiusInner,cy_ + _this9.diaInner,cx_ + _this9.diaInner,cy_ - _this9.radiusInner,_this9.thick * 2);
 					break;
 				case 3:
-					var cx_1 = cx - this.thick;
-					var cy_1 = cy - this.thick;
-					g.drawLine(cx_1 - this.radiusInner / 3,cy_1 + diaInner,cx_1 + diaInner,cy_1 - this.radiusInner,this.thick * 2);
-					g.drawLine(cx_1 - this.radiusInner / 3,cy_1 + diaInner,cx_1 - this.radiusInner,cy_1 + this.radiusInner / 2,this.thick * 2);
+					var _this10 = this.common;
+					var cx_1 = cx - _this10.thick;
+					var cy_1 = cy - _this10.thick;
+					var r_3 = _this10.radiusInner / 3;
+					var t2 = _this10.thick * 2;
+					g.drawLine(cx_1 - r_3,cy_1 + _this10.diaInner,cx_1 + _this10.diaInner,cy_1 - _this10.radiusInner,t2);
+					g.drawLine(cx_1 - r_3,cy_1 + _this10.diaInner,cx_1 - _this10.radiusInner,cy_1 + _this10.radiusInner / 2,t2);
 					break;
 				case 4:
-					var cx_2 = cx - this.thick;
-					var cy_2 = cy - this.thick;
-					g.drawLine(cx_2 - this.radiusInner / 3,cy_2 + diaInner,cx_2 + diaInner,cy_2 - this.radiusInner,this.thick * 2);
-					g.drawLine(cx_2 - this.radiusInner / 3,cy_2 + diaInner,cx_2 - this.radiusInner,cy_2 + this.radiusInner / 2,this.thick * 2);
+					var _this11 = this.common;
+					var cx_2 = cx - _this11.thick;
+					var cy_2 = cy - _this11.thick;
+					var r_31 = _this11.radiusInner / 3;
+					var t21 = _this11.thick * 2;
+					g.drawLine(cx_2 - r_31,cy_2 + _this11.diaInner,cx_2 + _this11.diaInner,cy_2 - _this11.radiusInner,t21);
+					g.drawLine(cx_2 - r_31,cy_2 + _this11.diaInner,cx_2 - _this11.radiusInner,cy_2 + _this11.radiusInner / 2,t21);
 					break;
 				case 5:
-					g.fillTriangle(cx - this.radiusInner,cy + this.radiusInner * 1.5,cx,cy - this.radiusInner * 0.5,cx + this.radiusInner,cy + 1.5 * this.radiusInner);
+					var _this12 = this.common;
+					g.fillTriangle(cx - _this12.radiusInner,cy + _this12.radiusInner * 1.5,cx,cy - _this12.radiusInner * 0.5,cx + _this12.radiusInner,cy + 1.5 * _this12.radiusInner);
 					break;
 				case 6:
-					var cx_3 = cx - this.thick;
-					var cy_3 = cy - this.thick;
-					g.drawLine(cx_3 - this.radiusInner / 3 + this.radiusInner / 2,cy_3 + diaInner,cx_3 + diaInner,cy_3 - this.radiusInner + this.radiusInner / 2,this.thick * 2);
-					g.drawLine(cx_3 - this.radiusInner / 3 + this.radiusInner / 2,cy_3 + diaInner,cx_3 - this.radiusInner + this.radiusInner / 2,cy_3 + this.radiusInner / 2,this.thick * 2);
+					var _this13 = this.common;
+					var cx_3 = cx + _this13.radiusInner / 2 - _this13.thick;
+					var cy_3 = cy - _this13.thick;
+					var r_32 = _this13.radiusInner / 3;
+					var t22 = _this13.thick * 2;
+					g.drawLine(cx_3 - r_32,cy_3 + _this13.diaInner,cx_3 + _this13.diaInner,cy_3 - _this13.radiusInner,t22);
+					g.drawLine(cx_3 - r_32,cy_3 + _this13.diaInner,cx_3 - _this13.radiusInner,cy_3 + _this13.radiusInner / 2,t22);
 					break;
 				}
 			}
-			g.drawString(label,cx + this.radiusOutline + this.gapW,cy - this.radiusOutline);
-			cy += dia + this.gapH;
+			this.renderText(label,g,cx,cy);
+			var _this14 = this.common;
+			cy += _this14.dia + _this14.gapH;
 		}
 	}
-	,highlight: null
+	,drawInner: function(g,cx,cy) {
+		switch(this.optionType) {
+		case 0:
+			kha_graphics2_GraphicsExtension.fillCircle(g,cx,cy,this.common.radiusInner);
+			break;
+		case 1:
+			var _this = this.common;
+			g.fillRect(cx - _this.radiusInner,cy - _this.radiusInner,_this.diaInner,_this.diaInner);
+			break;
+		case 2:
+			var _this1 = this.common;
+			var cx_ = cx - _this1.thick;
+			var cy_ = cy - _this1.thick;
+			g.drawLine(cx_ - _this1.radiusInner,cy_ - _this1.radiusInner,cx_ + _this1.diaInner,cy_ + _this1.diaInner,_this1.thick * 2);
+			g.drawLine(cx_ - _this1.radiusInner,cy_ + _this1.diaInner,cx_ + _this1.diaInner,cy_ - _this1.radiusInner,_this1.thick * 2);
+			break;
+		case 3:
+			var _this2 = this.common;
+			var cx_1 = cx - _this2.thick;
+			var cy_1 = cy - _this2.thick;
+			var r_3 = _this2.radiusInner / 3;
+			var t2 = _this2.thick * 2;
+			g.drawLine(cx_1 - r_3,cy_1 + _this2.diaInner,cx_1 + _this2.diaInner,cy_1 - _this2.radiusInner,t2);
+			g.drawLine(cx_1 - r_3,cy_1 + _this2.diaInner,cx_1 - _this2.radiusInner,cy_1 + _this2.radiusInner / 2,t2);
+			break;
+		case 4:
+			var _this3 = this.common;
+			var cx_2 = cx - _this3.thick;
+			var cy_2 = cy - _this3.thick;
+			var r_31 = _this3.radiusInner / 3;
+			var t21 = _this3.thick * 2;
+			g.drawLine(cx_2 - r_31,cy_2 + _this3.diaInner,cx_2 + _this3.diaInner,cy_2 - _this3.radiusInner,t21);
+			g.drawLine(cx_2 - r_31,cy_2 + _this3.diaInner,cx_2 - _this3.radiusInner,cy_2 + _this3.radiusInner / 2,t21);
+			break;
+		case 5:
+			var _this4 = this.common;
+			g.fillTriangle(cx - _this4.radiusInner,cy + _this4.radiusInner * 1.5,cx,cy - _this4.radiusInner * 0.5,cx + _this4.radiusInner,cy + 1.5 * _this4.radiusInner);
+			break;
+		case 6:
+			var _this5 = this.common;
+			var cx_3 = cx + _this5.radiusInner / 2 - _this5.thick;
+			var cy_3 = cy - _this5.thick;
+			var r_32 = _this5.radiusInner / 3;
+			var t22 = _this5.thick * 2;
+			g.drawLine(cx_3 - r_32,cy_3 + _this5.diaInner,cx_3 + _this5.diaInner,cy_3 - _this5.radiusInner,t22);
+			g.drawLine(cx_3 - r_32,cy_3 + _this5.diaInner,cx_3 - _this5.radiusInner,cy_3 + _this5.radiusInner / 2,t22);
+			break;
+		}
+	}
+	,drawOuter: function(g,cx,cy) {
+		switch(this.optionType) {
+		case 0:
+			var _this = this.common;
+			kha_graphics2_GraphicsExtension.drawCircle(g,cx,cy,_this.radiusOutline,_this.thick);
+			break;
+		case 1:
+			var _this1 = this.common;
+			g.drawRect(cx - _this1.radiusOutline,cy - _this1.radiusOutline,_this1.dia,_this1.dia,_this1.thick);
+			break;
+		case 2:
+			var _this2 = this.common;
+			g.drawRect(cx - _this2.radiusOutline,cy - _this2.radiusOutline,_this2.dia,_this2.dia,_this2.thick);
+			break;
+		case 3:
+			var _this3 = this.common;
+			g.drawRect(cx - _this3.radiusOutline,cy - _this3.radiusOutline,_this3.dia,_this3.dia,_this3.thick);
+			break;
+		case 4:
+			var _this4 = this.common;
+			kha_graphics2_GraphicsExtension.drawCircle(g,cx,cy,_this4.radiusOutline,_this4.thick);
+			break;
+		case 5:
+			var _this5 = this.common;
+			g.drawLine(cx - _this5.radiusOutline,cy + _this5.radiusOutline,cx,cy - _this5.radiusOutline);
+			g.drawLine(cx,cy - _this5.radiusOutline,cx + _this5.radiusOutline,cy + _this5.radiusOutline);
+			g.drawLine(cx + _this5.radiusOutline,cy + _this5.radiusOutline,cx - _this5.radiusOutline,cy + _this5.radiusOutline);
+			break;
+		case 6:
+			var _this6 = this.common;
+			g.drawLine(cx - _this6.radiusOutline,cy + _this6.radiusOutline,cx,cy - _this6.radiusOutline);
+			g.drawLine(cx,cy - _this6.radiusOutline,cx + _this6.radiusOutline,cy + _this6.radiusOutline);
+			g.drawLine(cx + _this6.radiusOutline,cy + _this6.radiusOutline,cx - _this6.radiusOutline,cy + _this6.radiusOutline);
+			break;
+		}
+	}
+	,renderText: function(label,g,cx,cy) {
+		g.drawString(label,cx + this.radiusOutline + this.gapW,cy - this.radiusOutline);
+	}
 	,hitOver: function(x,y) {
 		var area;
 		var hit = -1;
@@ -1030,7 +1600,7 @@ fullK_components_ViewOptions.prototype = {
 			this.highlight = -1;
 		}
 	}
-	,hitCheck: function(x,y) {
+	,hitCheck: function(px,py) {
 		var area;
 		var hit = -1;
 		var _g = 0;
@@ -1038,7 +1608,7 @@ fullK_components_ViewOptions.prototype = {
 		while(_g < _g1) {
 			var i = _g++;
 			area = this.hitArea[i];
-			if(x > area.x && x < area.r && y > area.y && y < area.b) {
+			if(px > area.x && px < area.r && py > area.y && py < area.b) {
 				hit = i;
 				break;
 			}
@@ -1063,7 +1633,7 @@ fullK_components_ViewOptions.prototype = {
 			this.state[hit] = !this.state[hit];
 		}
 	}
-	,hitTest: function(x,y) {
+	,hitTest: function(px,py) {
 		var area;
 		var hit = -1;
 		var _g = 0;
@@ -1071,7 +1641,7 @@ fullK_components_ViewOptions.prototype = {
 		while(_g < _g1) {
 			var i = _g++;
 			area = this.hitArea[i];
-			if(x > area.x && x < area.r && y > area.y && y < area.b) {
+			if(px > area.x && px < area.r && py > area.y && py < area.b) {
 				hit = i;
 				break;
 			}

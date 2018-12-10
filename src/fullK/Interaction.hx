@@ -46,7 +46,7 @@ class Interaction {
             if( canTrace ) trace( 'mouse ' + mouseX + ', '+ mouseY );
         }
         over = function(){
-            // if( canTrace ) trace( 'mouse over' + mouseX + ', '+ mouseY );
+            if( canTrace ) trace( 'mouse over' + mouseX + ', '+ mouseY );
         }
         upMouse = function(){
             if( canTrace ) trace( 'mouse up ' + mouseX + ' ' + mouseY );
