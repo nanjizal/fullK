@@ -62,8 +62,6 @@ class SliderBars {
     }
     inline
     function slideePos( slidee: Slidee, cx: Float, width: Float ){
-        var min: Float;
-        var max: Float;
         var flip = slidee.flip;
         if( flip == null ) slidee.flip = false;
         if( slidee.clampInteger == null ) slidee.clampInteger = false;
