@@ -32,8 +32,13 @@ class Interaction {
     var dragOffY:           Float;
     public var dragItem( default, set ): Dragable;
     public function set_dragItem( dragAble: Dragable ): Dragable {
-        dragOffX = dragAble.x - mouseX;
-        dragOffY = dragAble.y - mouseY;
+        if( dragAble == null ){
+            //dragOffX = 0;
+            //dragOffY = 0;
+        } else {
+            dragOffX = dragAble.x - mouseX;
+            dragOffY = dragAble.y - mouseY;
+        }
         this.dragItem = dragAble;
         return dragAble;
     }
@@ -85,8 +90,11 @@ class Interaction {
     function mouseUp( button: Int, x: Int, y: Int ): Void {
         mouseX = x;
         mouseY = y;
+        if( depress ) drag();
+        trace( 'mouse Up ' );
         if( button == 0 ) {
             upMouse();
+            dragItem = { x: 0, y: 0, width: 0, height: 0 };
             depress = false;
         }
     }
@@ -100,16 +108,16 @@ class Interaction {
             over();
         }
     }
-    inline function drag(){
+    function drag(){
         if( dragItem == null ) return;
         dragItem.x = mouseX + dragOffX;
         dragItem.y = mouseY + dragOffY;
-        if( dragCentre ){
-            var cx = dragItem.x + dragItem.width/2;
-            var cy = dragItem.y + dragItem.height/2;
-            dragOffX += ( cx - dragOffX )/4;
-            dragOffY += ( cy - dragOffY )/4;
-        }
+        //if( dragOffX != 0 || dragOffY != 0 ){
+            if( dragCentre ){
+                dragOffX += ( -dragItem.width/2 - dragOffX )/4;
+                dragOffY += ( -dragItem.height/2 - dragOffY )/4;
+            }
+       // }
     }
     function mouseWheel( delta: Int ): Void {
         wheelDelta = delta;

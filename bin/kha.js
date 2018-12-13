@@ -320,7 +320,8 @@ fullK_MainTemplate.prototype = {
 	,__class__: fullK_MainTemplate
 };
 var MainApp = function() {
-	this.sliders = new fullK_components_SliderBars(100,200);
+	this.slidersVertical = new fullK_components_SliderBars(100,350);
+	this.slidersHorizontal = new fullK_components_SliderBars(100,200);
 	this.options = new fullK_components_ViewOptions(300,100);
 	fullK_MainTemplate.call(this);
 };
@@ -332,12 +333,33 @@ MainApp.main = function() {
 MainApp.__super__ = fullK_MainTemplate;
 MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 	options: null
-	,sliders: null
+	,slidersHorizontal: null
+	,slidersVertical: null
+	,dragImage: null
+	,dragText: null
 	,setup: function() {
-		haxe_Log.trace("setup",{ fileName : "MainApp.hx", lineNumber : 12, className : "MainApp", methodName : "setup"});
+		haxe_Log.trace("setup",{ fileName : "MainApp.hx", lineNumber : 19, className : "MainApp", methodName : "setup"});
+		this.setupDragImage();
+		this.setupDragText();
 		this.frameStatGreySkin();
 		this.setupOptions();
 		this.setupSliderBars();
+	}
+	,setupDragImage: function() {
+		this.dragImage = new fullK_components_DragGraphic();
+		this.dragImage.graphicType = 1;
+		this.dragImage.image = kha_Assets.images.khaIcon;
+		this.dragImage.x = 500.;
+		this.dragImage.y = 370.;
+		this.dragImage.set_scale(0.3);
+	}
+	,setupDragText: function() {
+		this.dragText = new fullK_components_DragGraphic();
+		this.dragText.graphicType = 2;
+		this.dragText.label = "draggable text";
+		this.dragText.x = 350;
+		this.dragText.y = 370;
+		this.dragText.set_scale(0.95);
 	}
 	,setupOptions: function() {
 		var _gthis = this;
@@ -348,69 +370,282 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 			switch(id) {
 			case 0:
 				_gthis.options.optionType = 0;
-				_gthis.sliders.optionType = 0;
+				_gthis.slidersHorizontal.optionType = 0;
+				_gthis.slidersVertical.optionType = 0;
 				_gthis.options.updateState(0);
 				break;
 			case 1:
 				_gthis.options.optionType = 1;
-				_gthis.sliders.optionType = 1;
+				_gthis.slidersHorizontal.optionType = 1;
+				_gthis.slidersVertical.optionType = 1;
 				break;
 			case 2:
 				_gthis.options.optionType = 2;
-				_gthis.sliders.optionType = 1;
+				_gthis.slidersHorizontal.optionType = 1;
+				_gthis.slidersVertical.optionType = 1;
 				break;
 			case 3:
 				_gthis.options.optionType = 3;
-				_gthis.sliders.optionType = 1;
+				_gthis.slidersHorizontal.optionType = 1;
+				_gthis.slidersVertical.optionType = 1;
 				break;
 			case 4:
 				_gthis.options.optionType = 4;
-				_gthis.sliders.optionType = 0;
+				_gthis.slidersHorizontal.optionType = 0;
+				_gthis.slidersVertical.optionType = 0;
 				break;
 			case 5:
 				_gthis.options.optionType = 5;
-				_gthis.sliders.optionType = 5;
+				_gthis.slidersHorizontal.optionType = 5;
+				_gthis.slidersVertical.optionType = 5;
 				break;
 			case 6:
 				_gthis.options.optionType = 6;
-				_gthis.sliders.optionType = 5;
+				_gthis.slidersHorizontal.optionType = 5;
+				_gthis.slidersVertical.optionType = 5;
 				break;
 			}
 		};
 		this.options.optionOver = function(id1) {
-			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 47, className : "MainApp", methodName : "setupOptions"});
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 79, className : "MainApp", methodName : "setupOptions"});
 		};
 	}
 	,setupSliderBars: function() {
-		this.sliders.slidees = [{ min : 0., max : 100., value : 50., clampInteger : true},{ min : 0., max : 200., value : 50., flip : false},{ min : 0., max : 1., value : 0.3, flip : true}];
-		this.sliders.widths = [150,150,150];
-		this.sliders.sliderOver = function(id) {
-			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 54, className : "MainApp", methodName : "setupSliderBars"});
+		var _gthis = this;
+		this.slidersHorizontal.orientation = true;
+		this.slidersHorizontal.slidees = [{ min : 300., max : 2000., value : 300., flip : false},{ min : 300., max : 1024., value : 370., clampInteger : true},{ min : 300., max : 600., value : 400., flip : false}];
+		this.slidersHorizontal.widths = [150,150,150];
+		this.slidersHorizontal.sliderOver = function(id) {
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 88, className : "MainApp", methodName : "setupSliderBars"});
 		};
-		this.sliders.sliderChange = function(id1,value) {
-			haxe_Log.trace("slidee " + id1 + ": " + value,{ fileName : "MainApp.hx", lineNumber : 55, className : "MainApp", methodName : "setupSliderBars"});
+		this.slidersHorizontal.sliderChange = function(id1,value) {
+			haxe_Log.trace("slidee Horizontal " + id1 + ": " + value,{ fileName : "MainApp.hx", lineNumber : 90, className : "MainApp", methodName : "setupSliderBars"});
+			switch(id1) {
+			case 0:
+				_gthis.dragText.x = value;
+				break;
+			case 1:
+				_gthis.dragImage.x = value;
+				break;
+			case 2:
+				_gthis.options.x = value;
+				break;
+			}
+		};
+		this.slidersVertical.orientation = false;
+		this.slidersVertical.slidees = [{ min : 300., max : 600., value : 370., clampInteger : true},{ min : 0.1, max : 1.19, value : 0.3, flip : false},{ min : 0.5, max : 3.5, value : 0.3, flip : false}];
+		this.slidersVertical.widths = [150,150,150];
+		this.slidersVertical.sliderOver = function(id2) {
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 107, className : "MainApp", methodName : "setupSliderBars"});
+		};
+		this.slidersVertical.sliderChange = function(id3,value1) {
+			haxe_Log.trace("slidee Vertical" + id3 + ": " + value1,{ fileName : "MainApp.hx", lineNumber : 109, className : "MainApp", methodName : "setupSliderBars"});
+			switch(id3) {
+			case 0:
+				_gthis.dragImage.y = value1;
+				break;
+			case 1:
+				_gthis.dragImage.set_scale(value1);
+				break;
+			case 2:
+				_gthis.dragText.set_scale(value1);
+				break;
+			}
 		};
 	}
 	,over: function() {
 		this.options.hitOver(this.interaction.mouseX,this.interaction.mouseY);
-		this.sliders.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		this.slidersHorizontal.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		this.slidersVertical.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		this.dragImage.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		this.dragText.hitOver(this.interaction.mouseX,this.interaction.mouseY);
 	}
 	,move: function() {
 		this.options.hitOver(this.interaction.mouseX,this.interaction.mouseY);
-		this.sliders.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		this.slidersHorizontal.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		this.slidersVertical.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		this.dragImage.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		this.dragText.hitOver(this.interaction.mouseX,this.interaction.mouseY);
 	}
 	,down: function() {
-		this.options.hitCheck(this.interaction.mouseX,this.interaction.mouseY);
-		this.sliders.hitCheck(this.interaction.mouseX,this.interaction.mouseY);
+		var mx = this.interaction.mouseX;
+		var my = this.interaction.mouseY;
+		var _this = this.dragImage;
+		_this.area = { x : _this.x - _this.spaceW, y : _this.y, r : _this.x + _this.width, b : _this.y + _this.height};
+		var imgHit = mx > _this.area.x && mx < _this.area.r && my > _this.area.y && my < _this.area.b;
+		var _this1 = this.dragText;
+		_this1.area = { x : _this1.x - _this1.spaceW, y : _this1.y, r : _this1.x + _this1.width, b : _this1.y + _this1.height};
+		var txtHit = mx > _this1.area.x && mx < _this1.area.r && my > _this1.area.y && my < _this1.area.b;
+		if(imgHit) {
+			this.interaction.set_dragItem(this.dragImage);
+		}
+		if(txtHit) {
+			this.interaction.set_dragItem(this.dragText);
+		}
+		if(imgHit || txtHit) {
+			this.options.enabled = false;
+			this.slidersHorizontal.enabled = false;
+			this.slidersVertical.enabled = false;
+		}
+		this.options.hitCheck(mx,my);
+		this.slidersHorizontal.hitCheck(mx,my);
+		this.slidersVertical.hitCheck(mx,my);
 	}
 	,up: function() {
-		this.sliders.upCheck(this.interaction.mouseX,this.interaction.mouseY);
+		this.options.enabled = true;
+		this.slidersHorizontal.enabled = true;
+		this.slidersVertical.enabled = true;
+		this.slidersHorizontal.upCheck(this.interaction.mouseX,this.interaction.mouseY);
+		this.slidersVertical.upCheck(this.interaction.mouseX,this.interaction.mouseY);
 	}
-	,render2D: function(g2) {
-		g2.drawRect(100,100,100,30);
-		g2.drawString("hello world",105,105);
-		this.options.renderView(g2);
-		this.sliders.renderView(g2);
+	,render2D: function(g) {
+		g.drawRect(100,100,100,30);
+		g.drawString("hello world",105,105);
+		this.options.renderView(g);
+		this.slidersHorizontal.renderView(g);
+		this.slidersVertical.renderView(g);
+		var _this = this.dragImage;
+		var _this__00 = 1;
+		var _this__10 = 0;
+		var _this__20 = 0;
+		var _this__01 = 0;
+		var _this__11 = 1;
+		var _this__21 = 0;
+		var _this__02 = 0;
+		var _this__12 = 0;
+		var _this__22 = 1;
+		var m__00 = _this.scale;
+		var m__10 = 0;
+		var m__20 = 0;
+		var m__01 = 0;
+		var m__11 = _this.scale;
+		var m__21 = 0;
+		var m__02 = 0;
+		var m__12 = 0;
+		var m__22 = 1;
+		var transformation = new kha_math_FastMatrix3(_this__00 * m__00 + _this__10 * m__01 + _this__20 * m__02,_this__00 * m__10 + _this__10 * m__11 + _this__20 * m__12,_this__00 * m__20 + _this__10 * m__21 + _this__20 * m__22,_this__01 * m__00 + _this__11 * m__01 + _this__21 * m__02,_this__01 * m__10 + _this__11 * m__11 + _this__21 * m__12,_this__01 * m__20 + _this__11 * m__21 + _this__21 * m__22,_this__02 * m__00 + _this__12 * m__01 + _this__22 * m__02,_this__02 * m__10 + _this__12 * m__11 + _this__22 * m__12,_this__02 * m__20 + _this__12 * m__21 + _this__22 * m__22);
+		g.setTransformation(transformation);
+		var _this1 = g.transformations[g.transformations.length - 1];
+		_this1._00 = transformation._00;
+		_this1._10 = transformation._10;
+		_this1._20 = transformation._20;
+		_this1._01 = transformation._01;
+		_this1._11 = transformation._11;
+		_this1._21 = transformation._21;
+		_this1._02 = transformation._02;
+		_this1._12 = transformation._12;
+		_this1._22 = transformation._22;
+		switch(_this.graphicType) {
+		case 0:
+			break;
+		case 1:
+			g.drawImage(_this.image,_this.x / _this.scale,_this.y / _this.scale);
+			g.set_opacity(0.2);
+			if(_this.highlight != -1) {
+				g.set_color(-65536);
+				g.drawRect(_this.x / _this.scale,_this.y / _this.scale,_this.width / _this.scale,_this.height / _this.scale,_this.common.thick / _this.scale);
+				g.set_color(-1);
+				g.set_opacity(1.);
+			}
+			break;
+		case 2:
+			g.set_opacity(0.05);
+			if(_this.highlight != -1) {
+				g.set_color(-65536);
+			}
+			g.fillRect(Math.round(_this.x / _this.scale - _this.spaceW),Math.round(_this.y / _this.scale),Math.round(_this.width / _this.scale),Math.round(_this.height / _this.scale));
+			if(_this.highlight != -1) {
+				g.set_color(-1);
+			}
+			g.set_opacity(1.);
+			g.drawString(_this.label,Math.round(_this.x / _this.scale),Math.round(_this.y / _this.scale));
+			break;
+		}
+		var transformation1 = new kha_math_FastMatrix3(1,0,0,0,1,0,0,0,1);
+		g.setTransformation(transformation1);
+		var _this2 = g.transformations[g.transformations.length - 1];
+		_this2._00 = transformation1._00;
+		_this2._10 = transformation1._10;
+		_this2._20 = transformation1._20;
+		_this2._01 = transformation1._01;
+		_this2._11 = transformation1._11;
+		_this2._21 = transformation1._21;
+		_this2._02 = transformation1._02;
+		_this2._12 = transformation1._12;
+		_this2._22 = transformation1._22;
+		_this.area = { x : _this.x - _this.spaceW, y : _this.y, r : _this.x + _this.width, b : _this.y + _this.height};
+		g.set_opacity(1.);
+		g.drawString("draggable image",this.dragImage.x,this.dragImage.y - 25);
+		var _this3 = this.dragText;
+		var _this__001 = 1;
+		var _this__101 = 0;
+		var _this__201 = 0;
+		var _this__011 = 0;
+		var _this__111 = 1;
+		var _this__211 = 0;
+		var _this__021 = 0;
+		var _this__121 = 0;
+		var _this__221 = 1;
+		var m__001 = _this3.scale;
+		var m__101 = 0;
+		var m__201 = 0;
+		var m__011 = 0;
+		var m__111 = _this3.scale;
+		var m__211 = 0;
+		var m__021 = 0;
+		var m__121 = 0;
+		var m__221 = 1;
+		var transformation2 = new kha_math_FastMatrix3(_this__001 * m__001 + _this__101 * m__011 + _this__201 * m__021,_this__001 * m__101 + _this__101 * m__111 + _this__201 * m__121,_this__001 * m__201 + _this__101 * m__211 + _this__201 * m__221,_this__011 * m__001 + _this__111 * m__011 + _this__211 * m__021,_this__011 * m__101 + _this__111 * m__111 + _this__211 * m__121,_this__011 * m__201 + _this__111 * m__211 + _this__211 * m__221,_this__021 * m__001 + _this__121 * m__011 + _this__221 * m__021,_this__021 * m__101 + _this__121 * m__111 + _this__221 * m__121,_this__021 * m__201 + _this__121 * m__211 + _this__221 * m__221);
+		g.setTransformation(transformation2);
+		var _this4 = g.transformations[g.transformations.length - 1];
+		_this4._00 = transformation2._00;
+		_this4._10 = transformation2._10;
+		_this4._20 = transformation2._20;
+		_this4._01 = transformation2._01;
+		_this4._11 = transformation2._11;
+		_this4._21 = transformation2._21;
+		_this4._02 = transformation2._02;
+		_this4._12 = transformation2._12;
+		_this4._22 = transformation2._22;
+		switch(_this3.graphicType) {
+		case 0:
+			break;
+		case 1:
+			g.drawImage(_this3.image,_this3.x / _this3.scale,_this3.y / _this3.scale);
+			g.set_opacity(0.2);
+			if(_this3.highlight != -1) {
+				g.set_color(-65536);
+				g.drawRect(_this3.x / _this3.scale,_this3.y / _this3.scale,_this3.width / _this3.scale,_this3.height / _this3.scale,_this3.common.thick / _this3.scale);
+				g.set_color(-1);
+				g.set_opacity(1.);
+			}
+			break;
+		case 2:
+			g.set_opacity(0.05);
+			if(_this3.highlight != -1) {
+				g.set_color(-65536);
+			}
+			g.fillRect(Math.round(_this3.x / _this3.scale - _this3.spaceW),Math.round(_this3.y / _this3.scale),Math.round(_this3.width / _this3.scale),Math.round(_this3.height / _this3.scale));
+			if(_this3.highlight != -1) {
+				g.set_color(-1);
+			}
+			g.set_opacity(1.);
+			g.drawString(_this3.label,Math.round(_this3.x / _this3.scale),Math.round(_this3.y / _this3.scale));
+			break;
+		}
+		var transformation3 = new kha_math_FastMatrix3(1,0,0,0,1,0,0,0,1);
+		g.setTransformation(transformation3);
+		var _this5 = g.transformations[g.transformations.length - 1];
+		_this5._00 = transformation3._00;
+		_this5._10 = transformation3._10;
+		_this5._20 = transformation3._20;
+		_this5._01 = transformation3._01;
+		_this5._11 = transformation3._11;
+		_this5._21 = transformation3._21;
+		_this5._02 = transformation3._02;
+		_this5._12 = transformation3._12;
+		_this5._22 = transformation3._22;
+		_this3.area = { x : _this3.x - _this3.spaceW, y : _this3.y, r : _this3.x + _this3.width, b : _this3.y + _this3.height};
 	}
 	,__class__: MainApp
 });
@@ -670,8 +905,10 @@ fullK_Interaction.prototype = {
 	,dragOffY: null
 	,dragItem: null
 	,set_dragItem: function(dragAble) {
-		this.dragOffX = dragAble.x - this.mouseX;
-		this.dragOffY = dragAble.y - this.mouseY;
+		if(dragAble != null) {
+			this.dragOffX = dragAble.x - this.mouseX;
+			this.dragOffY = dragAble.y - this.mouseY;
+		}
 		this.dragItem = dragAble;
 		return dragAble;
 	}
@@ -679,32 +916,32 @@ fullK_Interaction.prototype = {
 		var _gthis = this;
 		this.move = function() {
 			if(_gthis.canTrace) {
-				haxe_Log.trace("mouse " + _gthis.mouseX + ", " + _gthis.mouseY,{ fileName : "fullK/Interaction.hx", lineNumber : 46, className : "fullK.Interaction", methodName : "traceListeners"});
+				haxe_Log.trace("mouse " + _gthis.mouseX + ", " + _gthis.mouseY,{ fileName : "fullK/Interaction.hx", lineNumber : 51, className : "fullK.Interaction", methodName : "traceListeners"});
 			}
 		};
 		this.over = function() {
 			if(_gthis.canTrace) {
-				haxe_Log.trace("mouse over" + _gthis.mouseX + ", " + _gthis.mouseY,{ fileName : "fullK/Interaction.hx", lineNumber : 49, className : "fullK.Interaction", methodName : "traceListeners"});
+				haxe_Log.trace("mouse over" + _gthis.mouseX + ", " + _gthis.mouseY,{ fileName : "fullK/Interaction.hx", lineNumber : 54, className : "fullK.Interaction", methodName : "traceListeners"});
 			}
 		};
 		this.upMouse = function() {
 			if(_gthis.canTrace) {
-				haxe_Log.trace("mouse up " + _gthis.mouseX + " " + _gthis.mouseY,{ fileName : "fullK/Interaction.hx", lineNumber : 52, className : "fullK.Interaction", methodName : "traceListeners"});
+				haxe_Log.trace("mouse up " + _gthis.mouseX + " " + _gthis.mouseY,{ fileName : "fullK/Interaction.hx", lineNumber : 57, className : "fullK.Interaction", methodName : "traceListeners"});
 			}
 		};
 		this.dnMouse = function() {
 			if(_gthis.canTrace) {
-				haxe_Log.trace("mouse down " + _gthis.mouseX + " " + _gthis.mouseY,{ fileName : "fullK/Interaction.hx", lineNumber : 55, className : "fullK.Interaction", methodName : "traceListeners"});
+				haxe_Log.trace("mouse down " + _gthis.mouseX + " " + _gthis.mouseY,{ fileName : "fullK/Interaction.hx", lineNumber : 60, className : "fullK.Interaction", methodName : "traceListeners"});
 			}
 		};
 		this.wheel = function() {
 			if(_gthis.canTrace) {
-				haxe_Log.trace("mouse wheel " + _gthis.wheelDelta,{ fileName : "fullK/Interaction.hx", lineNumber : 58, className : "fullK.Interaction", methodName : "traceListeners"});
+				haxe_Log.trace("mouse wheel " + _gthis.wheelDelta,{ fileName : "fullK/Interaction.hx", lineNumber : 63, className : "fullK.Interaction", methodName : "traceListeners"});
 			}
 		};
 		this.keyDepressed = function() {
 			if(_gthis.canTrace) {
-				haxe_Log.trace("letters " + _gthis.lettersDown,{ fileName : "fullK/Interaction.hx", lineNumber : 62, className : "fullK.Interaction", methodName : "traceListeners"});
+				haxe_Log.trace("letters " + _gthis.lettersDown,{ fileName : "fullK/Interaction.hx", lineNumber : 67, className : "fullK.Interaction", methodName : "traceListeners"});
 			}
 		};
 	}
@@ -734,8 +971,13 @@ fullK_Interaction.prototype = {
 	,mouseUp: function(button,x,y) {
 		this.mouseX = x;
 		this.mouseY = y;
+		if(this.depress) {
+			this.drag();
+		}
+		haxe_Log.trace("mouse Up ",{ fileName : "fullK/Interaction.hx", lineNumber : 94, className : "fullK.Interaction", methodName : "mouseUp"});
 		if(button == 0) {
 			this.upMouse();
+			this.set_dragItem({ x : 0, y : 0, width : 0, height : 0});
 			this.depress = false;
 		}
 	}
@@ -744,16 +986,7 @@ fullK_Interaction.prototype = {
 		this.mouseY = y;
 		if(this.depress) {
 			this.move();
-			if(this.dragItem != null) {
-				this.dragItem.x = this.mouseX + this.dragOffX;
-				this.dragItem.y = this.mouseY + this.dragOffY;
-				if(this.dragCentre) {
-					var cx = this.dragItem.x + this.dragItem.width / 2;
-					var cy = this.dragItem.y + this.dragItem.height / 2;
-					this.dragOffX += (cx - this.dragOffX) / 4;
-					this.dragOffY += (cy - this.dragOffY) / 4;
-				}
-			}
+			this.drag();
 		} else {
 			this.over();
 		}
@@ -765,10 +998,8 @@ fullK_Interaction.prototype = {
 		this.dragItem.x = this.mouseX + this.dragOffX;
 		this.dragItem.y = this.mouseY + this.dragOffY;
 		if(this.dragCentre) {
-			var cx = this.dragItem.x + this.dragItem.width / 2;
-			var cy = this.dragItem.y + this.dragItem.height / 2;
-			this.dragOffX += (cx - this.dragOffX) / 4;
-			this.dragOffY += (cy - this.dragOffY) / 4;
+			this.dragOffX += (-this.dragItem.width / 2 - this.dragOffX) / 4;
+			this.dragOffY += (-this.dragItem.height / 2 - this.dragOffY) / 4;
 		}
 	}
 	,mouseWheel: function(delta) {
@@ -902,7 +1133,9 @@ var fullK_components_Common = function() {
 	this.gapW = 20.;
 	this.thick = 1.5;
 	this.radiusInner = 4.;
+	this.fontSize = 22;
 	this.radiusOutline = 10.;
+	this.font = kha_Assets.fonts.OpenSans_Regular;
 	this.dia = this.radiusOutline * 2;
 	this.diaInner = this.radiusInner * 2;
 };
@@ -910,6 +1143,8 @@ $hxClasses["fullK.components.Common"] = fullK_components_Common;
 fullK_components_Common.__name__ = true;
 fullK_components_Common.prototype = {
 	radiusOutline: null
+	,fontSize: null
+	,font: null
 	,radiusInner: null
 	,thick: null
 	,gapW: null
@@ -958,8 +1193,14 @@ fullK_components_Common.prototype = {
 	,triangleUpIn: function(g,cx,cy) {
 		g.fillTriangle(cx - this.radiusInner,cy + this.radiusInner * 1.5,cx,cy - this.radiusInner * 0.5,cx + this.radiusInner,cy + 1.5 * this.radiusInner);
 	}
+	,triangleRightIn: function(g,cx,cy) {
+		g.fillTriangle(cx - 0.5 * this.radiusInner,cy - this.radiusInner,cx + 1.5 * this.radiusInner,cy,cx - 0.5 * this.radiusInner,cy + this.radiusInner);
+	}
 	,horiLine: function(g,cx,cy,width) {
 		g.drawLine(cx,cy + this.thick / 2,cx + width,cy + this.thick / 2,this.thick);
+	}
+	,vertLine: function(g,cx,cy,width) {
+		g.drawLine(cx,cy,cx,cy + width,this.thick);
 	}
 	,hitAreaRender: function(i,highlight,g,cx,cy,wid) {
 		var dx = cx - this.radiusOutline - this.thick;
@@ -981,10 +1222,165 @@ fullK_components_Common.prototype = {
 		g.set_opacity(1.);
 		return { x : dx, y : dy, r : dr, b : db};
 	}
+	,hitAreaRenderV: function(i,highlight,g,cx,cy,wid) {
+		var dx = cx - this.radiusOutline - this.thick;
+		var dy = cy - this.radiusOutline - this.thick;
+		var dw = this.dia + this.thick * 2;
+		var dr = dx + dw;
+		var dh = wid + this.thick * 2;
+		var db = dy + dh;
+		if(highlight == i) {
+			g.set_opacity(0.1);
+			g.set_color(-65536);
+		} else {
+			g.set_opacity(0.05);
+		}
+		g.fillRect(dx,dy,dw,dh);
+		if(highlight == i) {
+			g.set_color(-1);
+		}
+		g.set_opacity(1.);
+		return { x : dx, y : dy, r : dr, b : db};
+	}
 	,dy: function() {
 		return this.dia + this.gapH;
 	}
 	,__class__: fullK_components_Common
+};
+var fullK_components_DragGraphic = function() {
+	this.common = new fullK_components_Common();
+	this.graphicType = 0;
+	this.highlight = -1;
+	this.enabled = true;
+};
+$hxClasses["fullK.components.DragGraphic"] = fullK_components_DragGraphic;
+fullK_components_DragGraphic.__name__ = true;
+fullK_components_DragGraphic.prototype = {
+	enabled: null
+	,highlight: null
+	,graphicType: null
+	,x: null
+	,y: null
+	,width: null
+	,height: null
+	,spaceW: null
+	,area: null
+	,image: null
+	,label: null
+	,common: null
+	,scale: null
+	,set_scale: function(scale_) {
+		this.scale = scale_;
+		this.setDimensions();
+		this.area = { x : this.x - this.spaceW, y : this.y, r : this.x + this.width, b : this.y + this.height};
+		return scale_;
+	}
+	,setDimensions: function() {
+		switch(this.graphicType) {
+		case 0:
+			break;
+		case 1:
+			this.width = this.image.get_width() * this.scale;
+			this.height = this.image.get_height() * this.scale;
+			break;
+		case 2:
+			this.width = this.scale * this.common.font.width(this.common.fontSize," " + this.label + "  ");
+			this.spaceW = this.scale * this.common.font.width(this.common.fontSize," ");
+			this.height = this.scale * this.common.font.height(this.common.fontSize);
+			break;
+		}
+	}
+	,updateArea: function() {
+		this.area = { x : this.x - this.spaceW, y : this.y, r : this.x + this.width, b : this.y + this.height};
+	}
+	,hitOver: function(px,py) {
+		this.area = { x : this.x - this.spaceW, y : this.y, r : this.x + this.width, b : this.y + this.height};
+		if(px > this.area.x && px < this.area.r && py > this.area.y && py < this.area.b) {
+			this.highlight = 0;
+		} else {
+			this.highlight = -1;
+		}
+	}
+	,renderView: function(g) {
+		var _this__00 = 1;
+		var _this__10 = 0;
+		var _this__20 = 0;
+		var _this__01 = 0;
+		var _this__11 = 1;
+		var _this__21 = 0;
+		var _this__02 = 0;
+		var _this__12 = 0;
+		var _this__22 = 1;
+		var m__00 = this.scale;
+		var m__10 = 0;
+		var m__20 = 0;
+		var m__01 = 0;
+		var m__11 = this.scale;
+		var m__21 = 0;
+		var m__02 = 0;
+		var m__12 = 0;
+		var m__22 = 1;
+		var transformation = new kha_math_FastMatrix3(_this__00 * m__00 + _this__10 * m__01 + _this__20 * m__02,_this__00 * m__10 + _this__10 * m__11 + _this__20 * m__12,_this__00 * m__20 + _this__10 * m__21 + _this__20 * m__22,_this__01 * m__00 + _this__11 * m__01 + _this__21 * m__02,_this__01 * m__10 + _this__11 * m__11 + _this__21 * m__12,_this__01 * m__20 + _this__11 * m__21 + _this__21 * m__22,_this__02 * m__00 + _this__12 * m__01 + _this__22 * m__02,_this__02 * m__10 + _this__12 * m__11 + _this__22 * m__12,_this__02 * m__20 + _this__12 * m__21 + _this__22 * m__22);
+		g.setTransformation(transformation);
+		var _this = g.transformations[g.transformations.length - 1];
+		_this._00 = transformation._00;
+		_this._10 = transformation._10;
+		_this._20 = transformation._20;
+		_this._01 = transformation._01;
+		_this._11 = transformation._11;
+		_this._21 = transformation._21;
+		_this._02 = transformation._02;
+		_this._12 = transformation._12;
+		_this._22 = transformation._22;
+		switch(this.graphicType) {
+		case 0:
+			break;
+		case 1:
+			g.drawImage(this.image,this.x / this.scale,this.y / this.scale);
+			g.set_opacity(0.2);
+			if(this.highlight != -1) {
+				g.set_color(-65536);
+				g.drawRect(this.x / this.scale,this.y / this.scale,this.width / this.scale,this.height / this.scale,this.common.thick / this.scale);
+				g.set_color(-1);
+				g.set_opacity(1.);
+			}
+			break;
+		case 2:
+			g.set_opacity(0.05);
+			if(this.highlight != -1) {
+				g.set_color(-65536);
+			}
+			g.fillRect(Math.round(this.x / this.scale - this.spaceW),Math.round(this.y / this.scale),Math.round(this.width / this.scale),Math.round(this.height / this.scale));
+			if(this.highlight != -1) {
+				g.set_color(-1);
+			}
+			g.set_opacity(1.);
+			g.drawString(this.label,Math.round(this.x / this.scale),Math.round(this.y / this.scale));
+			break;
+		}
+		var transformation1 = new kha_math_FastMatrix3(1,0,0,0,1,0,0,0,1);
+		g.setTransformation(transformation1);
+		var _this1 = g.transformations[g.transformations.length - 1];
+		_this1._00 = transformation1._00;
+		_this1._10 = transformation1._10;
+		_this1._20 = transformation1._20;
+		_this1._01 = transformation1._01;
+		_this1._11 = transformation1._11;
+		_this1._21 = transformation1._21;
+		_this1._02 = transformation1._02;
+		_this1._12 = transformation1._12;
+		_this1._22 = transformation1._22;
+		this.area = { x : this.x - this.spaceW, y : this.y, r : this.x + this.width, b : this.y + this.height};
+	}
+	,hitCheck: function(mx,my) {
+		this.area = { x : this.x - this.spaceW, y : this.y, r : this.x + this.width, b : this.y + this.height};
+		if(mx > this.area.x && mx < this.area.r && my > this.area.y) {
+			return my < this.area.b;
+		} else {
+			return false;
+		}
+	}
+	,__class__: fullK_components_DragGraphic
 };
 var fullK_components_SliderBars = function(x_,y_) {
 	if(y_ == null) {
@@ -998,20 +1394,24 @@ var fullK_components_SliderBars = function(x_,y_) {
 	this.gapH = 16.;
 	this.y = 100.;
 	this.x = 100.;
-	this.visible = true;
 	this.highlight = -1;
 	this.optionType = 1;
 	this.dragging = false;
+	this.enabled = true;
+	this.visible = true;
+	this.orientation = true;
 	this.x = x_;
 	this.y = y_;
 };
 $hxClasses["fullK.components.SliderBars"] = fullK_components_SliderBars;
 fullK_components_SliderBars.__name__ = true;
 fullK_components_SliderBars.prototype = {
-	dragging: null
+	orientation: null
+	,visible: null
+	,enabled: null
+	,dragging: null
 	,optionType: null
 	,highlight: null
-	,visible: null
 	,x: null
 	,y: null
 	,gapH: null
@@ -1041,77 +1441,145 @@ fullK_components_SliderBars.prototype = {
 		while(_g < _g1) {
 			var i = _g++;
 			wid = this.widths[i];
-			var _this = this.common;
-			g.drawLine(cx,cy + _this.thick / 2,cx + wid,cy + _this.thick / 2,_this.thick);
 			slidee = this.slidees[i];
-			var min;
-			var max;
-			var flip = slidee.flip;
-			if(flip == null) {
-				slidee.flip = false;
+			switch(this.orientation) {
+			case false:
+				g.drawLine(cx,cy,cx,cy + wid,this.common.thick);
+				var flip = slidee.flip;
+				if(flip == null) {
+					slidee.flip = false;
+				}
+				if(slidee.clampInteger == null) {
+					slidee.clampInteger = false;
+				}
+				var min = slidee.min;
+				var max = slidee.max;
+				if(min > max) {
+					slidee.min = max;
+					slidee.max = min;
+					min = slidee.min;
+					max = slidee.max;
+				}
+				var dw = max - min;
+				var dif = wid / dw;
+				var value = slidee.value;
+				var dValue;
+				if(!flip) {
+					dValue = value - min;
+				} else {
+					dValue = max - value - min;
+				}
+				var dx = dValue * dif;
+				if(dx < 0.1) {
+					dx = 0.;
+				}
+				if(dx > wid - 0.1) {
+					dx = wid;
+				}
+				pos = cy + dx;
+				if(slidee.clampInteger) {
+					g.drawString(Std.string(Math.round(slidee.value)),cx + this.common.gapH - 2 * this.common.radiusInner,pos - 2.2 * this.common.radiusOutline);
+				} else {
+					g.drawString(Std.string(Math.round(slidee.value * 100) / 100),cx + this.common.gapH - 2 * this.common.radiusInner,pos - 2.2 * this.common.radiusOutline);
+				}
+				this.renderSlideeY(g,cx,pos);
+				if(this.enabled) {
+					var tmp = this.hitArea;
+					var _this = this.common;
+					var highlight = this.highlight;
+					var dx1 = cx - _this.radiusOutline - _this.thick;
+					var dy = cy - _this.radiusOutline - _this.thick;
+					var dw1 = _this.dia + _this.thick * 2;
+					var dr = dx1 + dw1;
+					var dh = wid + this.common.dia + _this.thick * 2;
+					var db = dy + dh;
+					if(highlight == i) {
+						g.set_opacity(0.1);
+						g.set_color(-65536);
+					} else {
+						g.set_opacity(0.05);
+					}
+					g.fillRect(dx1,dy,dw1,dh);
+					if(highlight == i) {
+						g.set_color(-1);
+					}
+					g.set_opacity(1.);
+					tmp[i] = { x : dx1, y : dy, r : dr, b : db};
+				}
+				var _this1 = this.common;
+				cx += (_this1.dia + _this1.gapH) * 1.8;
+				break;
+			case true:
+				var _this2 = this.common;
+				g.drawLine(cx,cy + _this2.thick / 2,cx + wid,cy + _this2.thick / 2,_this2.thick);
+				var flip1 = slidee.flip;
+				if(flip1 == null) {
+					slidee.flip = false;
+				}
+				if(slidee.clampInteger == null) {
+					slidee.clampInteger = false;
+				}
+				var min1 = slidee.min;
+				var max1 = slidee.max;
+				if(min1 > max1) {
+					slidee.min = max1;
+					slidee.max = min1;
+					min1 = slidee.min;
+					max1 = slidee.max;
+				}
+				var dw2 = max1 - min1;
+				var dif1 = wid / dw2;
+				var value1 = slidee.value;
+				var dValue1;
+				if(!flip1) {
+					dValue1 = value1 - min1;
+				} else {
+					dValue1 = max1 - value1 - min1;
+				}
+				var dx2 = dValue1 * dif1;
+				if(dx2 < 0.1) {
+					dx2 = 0.;
+				}
+				if(dx2 > wid - 0.1) {
+					dx2 = wid;
+				}
+				pos = cx + dx2;
+				if(slidee.clampInteger) {
+					g.drawString(Std.string(Math.round(slidee.value)),pos + this.common.radiusOutline,cy - this.common.gapH - this.common.radiusInner);
+				} else {
+					g.drawString(Std.string(Math.round(slidee.value * 100) / 100),pos + this.common.radiusOutline,cy - this.common.gapH - this.common.radiusInner);
+				}
+				this.renderSlideeX(g,pos,cy);
+				if(this.enabled) {
+					var tmp1 = this.hitArea;
+					var _this3 = this.common;
+					var highlight1 = this.highlight;
+					var dx3 = cx - _this3.radiusOutline - _this3.thick;
+					var dy1 = cy - _this3.radiusOutline - _this3.thick;
+					var dw3 = wid + this.common.dia + _this3.thick * 2;
+					var dr1 = dx3 + dw3;
+					var dh1 = _this3.dia + _this3.thick * 2;
+					var db1 = dy1 + dh1;
+					if(highlight1 == i) {
+						g.set_opacity(0.1);
+						g.set_color(-65536);
+					} else {
+						g.set_opacity(0.05);
+					}
+					g.fillRect(dx3,dy1,dw3,dh1);
+					if(highlight1 == i) {
+						g.set_color(-1);
+					}
+					g.set_opacity(1.);
+					tmp1[i] = { x : dx3, y : dy1, r : dr1, b : db1};
+				}
+				var _this4 = this.common;
+				cy += _this4.dia + _this4.gapH;
+				break;
 			}
-			if(slidee.clampInteger == null) {
-				slidee.clampInteger = false;
-			}
-			var min1 = slidee.min;
-			var max1 = slidee.max;
-			if(min1 > max1) {
-				slidee.min = max1;
-				slidee.max = min1;
-				min1 = slidee.min;
-				max1 = slidee.max;
-			}
-			var dw = max1 - min1;
-			var dif = wid / dw;
-			var value = slidee.value;
-			var dValue;
-			if(!flip) {
-				dValue = value - min1;
-			} else {
-				dValue = max1 - value - min1;
-			}
-			var dx = dValue * dif;
-			if(dx < 0.1) {
-				dx = 0.;
-			}
-			if(dx > wid - 0.1) {
-				dx = wid;
-			}
-			pos = cx + dx;
-			if(slidee.clampInteger) {
-				g.drawString(Std.string(Math.round(slidee.value)),pos + this.common.radiusOutline,cy - this.common.gapH - this.common.radiusInner);
-			} else {
-				g.drawString(Std.string(Math.round(slidee.value * 100) / 100),pos + this.common.radiusOutline,cy - this.common.gapH - this.common.radiusInner);
-			}
-			this.renderSlidee(g,pos,cy);
-			var tmp = this.hitArea;
-			var _this1 = this.common;
-			var highlight = this.highlight;
-			var dx1 = cx - _this1.radiusOutline - _this1.thick;
-			var dy = cy - _this1.radiusOutline - _this1.thick;
-			var dw1 = wid + this.common.dia + _this1.thick * 2;
-			var dr = dx1 + dw1;
-			var dh = _this1.dia + _this1.thick * 2;
-			var db = dy + dh;
-			if(highlight == i) {
-				g.set_opacity(0.1);
-				g.set_color(-65536);
-			} else {
-				g.set_opacity(0.05);
-			}
-			g.fillRect(dx1,dy,dw1,dh);
-			if(highlight == i) {
-				g.set_color(-1);
-			}
-			g.set_opacity(1.);
-			tmp[i] = { x : dx1, y : dy, r : dr, b : db};
-			var _this2 = this.common;
-			cy += _this2.dia + _this2.gapH;
 		}
 	}
 	,slideePos: function(slidee,cx,width) {
-		var min;
-		var max;
 		var flip = slidee.flip;
 		if(flip == null) {
 			slidee.flip = false;
@@ -1119,22 +1587,22 @@ fullK_components_SliderBars.prototype = {
 		if(slidee.clampInteger == null) {
 			slidee.clampInteger = false;
 		}
-		var min1 = slidee.min;
-		var max1 = slidee.max;
-		if(min1 > max1) {
-			slidee.min = max1;
-			slidee.max = min1;
-			min1 = slidee.min;
-			max1 = slidee.max;
+		var min = slidee.min;
+		var max = slidee.max;
+		if(min > max) {
+			slidee.min = max;
+			slidee.max = min;
+			min = slidee.min;
+			max = slidee.max;
 		}
-		var dw = max1 - min1;
+		var dw = max - min;
 		var dif = width / dw;
 		var value = slidee.value;
 		var dValue;
 		if(!flip) {
-			dValue = value - min1;
+			dValue = value - min;
 		} else {
-			dValue = max1 - value - min1;
+			dValue = max - value - min;
 		}
 		var dx = dValue * dif;
 		if(dx < 0.1) {
@@ -1145,7 +1613,7 @@ fullK_components_SliderBars.prototype = {
 		}
 		return cx + dx;
 	}
-	,renderSlidee: function(g,cx,cy) {
+	,renderSlideeX: function(g,cx,cy) {
 		switch(this.optionType) {
 		case 1:case 2:case 3:
 			var _this = this.common;
@@ -1161,17 +1629,41 @@ fullK_components_SliderBars.prototype = {
 			break;
 		}
 	}
+	,renderSlideeY: function(g,cx,cy) {
+		switch(this.optionType) {
+		case 1:case 2:case 3:
+			var _this = this.common;
+			g.fillRect(cx + this.common.thick / 4 - _this.radiusInner,cy - _this.radiusInner,_this.diaInner,_this.diaInner);
+			break;
+		case 0:case 4:
+			kha_graphics2_GraphicsExtension.fillCircle(g,cx,cy,this.common.radiusInner);
+			break;
+		case 5:case 6:
+			var _this1 = this.common;
+			var cy1 = cy - this.common.thick - this.common.thick / 4;
+			g.fillTriangle(cx - 0.5 * _this1.radiusInner,cy1 - _this1.radiusInner,cx + 1.5 * _this1.radiusInner,cy1,cx - 0.5 * _this1.radiusInner,cy1 + _this1.radiusInner);
+			break;
+		}
+	}
 	,updateValue: function(hit,px,py) {
 		var slidee = this.slidees[hit];
 		var wid = this.widths[hit];
-		var dx = px - this.x;
+		var delta;
+		switch(this.orientation) {
+		case false:
+			delta = py - this.y;
+			break;
+		case true:
+			delta = px - this.x;
+			break;
+		}
 		var dw = slidee.max - slidee.min;
 		var dif = dw / wid;
 		var value;
 		if(!slidee.flip) {
-			value = slidee.min + dx * dif;
+			value = slidee.min + delta * dif;
 		} else {
-			value = slidee.min + (wid - dx) * dif;
+			value = slidee.min + (wid - delta) * dif;
 		}
 		if(value > slidee.max) {
 			value = slidee.max;
@@ -1255,6 +1747,9 @@ fullK_components_SliderBars.prototype = {
 		this.dragging = false;
 	}
 	,hitCheck: function(px,py) {
+		if(!this.enabled) {
+			return;
+		}
 		var area;
 		var hit = -1;
 		var _g = 0;
@@ -1335,6 +1830,7 @@ var fullK_components_ViewOptions = function(x_,y_) {
 	this.radiusOutline = 10.;
 	this.optionType = 1;
 	this.highlight = -1;
+	this.enabled = true;
 	this.visible = true;
 	this.x = x_;
 	this.y = y_;
@@ -1343,6 +1839,7 @@ $hxClasses["fullK.components.ViewOptions"] = fullK_components_ViewOptions;
 fullK_components_ViewOptions.__name__ = true;
 fullK_components_ViewOptions.prototype = {
 	visible: null
+	,enabled: null
 	,highlight: null
 	,optionType: null
 	,radiusOutline: null
@@ -1379,27 +1876,29 @@ fullK_components_ViewOptions.prototype = {
 			var i = _g++;
 			label = this.labels[i];
 			fontWid = font.width(size,label);
-			var tmp = this.hitArea;
-			var _this = this.common;
-			var highlight = this.highlight;
-			var dx = cx - _this.radiusOutline - _this.thick;
-			var dy = cy - _this.radiusOutline - _this.thick;
-			var dw = fontWid + this.gapW + dia * 2 + _this.thick * 2;
-			var dr = dx + dw;
-			var dh = _this.dia + _this.thick * 2;
-			var db = dy + dh;
-			if(highlight == i) {
-				g.set_opacity(0.1);
-				g.set_color(-65536);
-			} else {
-				g.set_opacity(0.05);
+			if(this.enabled) {
+				var tmp = this.hitArea;
+				var _this = this.common;
+				var highlight = this.highlight;
+				var dx = cx - _this.radiusOutline - _this.thick;
+				var dy = cy - _this.radiusOutline - _this.thick;
+				var dw = fontWid + this.gapW + dia * 2 + _this.thick * 2;
+				var dr = dx + dw;
+				var dh = _this.dia + _this.thick * 2;
+				var db = dy + dh;
+				if(highlight == i) {
+					g.set_opacity(0.1);
+					g.set_color(-65536);
+				} else {
+					g.set_opacity(0.05);
+				}
+				g.fillRect(dx,dy,dw,dh);
+				if(highlight == i) {
+					g.set_color(-1);
+				}
+				g.set_opacity(1.);
+				tmp[i] = { x : dx, y : dy, r : dr, b : db};
 			}
-			g.fillRect(dx,dy,dw,dh);
-			if(highlight == i) {
-				g.set_color(-1);
-			}
-			g.set_opacity(1.);
-			tmp[i] = { x : dx, y : dy, r : dr, b : db};
 			g.set_opacity(1.);
 			switch(this.optionType) {
 			case 0:
@@ -1601,6 +2100,9 @@ fullK_components_ViewOptions.prototype = {
 		}
 	}
 	,hitCheck: function(px,py) {
+		if(!this.enabled) {
+			return;
+		}
 		var area;
 		var hit = -1;
 		var _g = 0;
@@ -2890,13 +3392,38 @@ js_html__$ArrayBuffer_ArrayBufferCompat.sliceImpl = function(begin,end) {
 	return resultArray.buffer;
 };
 var kha__$Assets_ImageList = function() {
-	this.names = [];
+	this.names = ["khaIcon"];
+	this.khaIconDescription = { name : "khaIcon", original_height : 400, original_width : 400, files : ["khaIcon.png"], type : "image"};
+	this.khaIconName = "khaIcon";
+	this.khaIcon = null;
 };
 $hxClasses["kha._Assets.ImageList"] = kha__$Assets_ImageList;
 kha__$Assets_ImageList.__name__ = true;
 kha__$Assets_ImageList.prototype = {
 	get: function(name) {
 		return Reflect.field(this,name);
+	}
+	,khaIcon: null
+	,khaIconName: null
+	,khaIconDescription: null
+	,khaIconLoad: function(done,failure) {
+		var tmp;
+		if(failure != null) {
+			tmp = failure;
+		} else {
+			var f = haxe_Log.trace;
+			var infos = { fileName : "kha/internal/AssetsBuilder.hx", lineNumber : 130, className : "kha._Assets.ImageList", methodName : "khaIconLoad"};
+			tmp = function(v) {
+				f(v,infos);
+			};
+		}
+		kha_Assets.loadImage("khaIcon",function(image) {
+			done();
+		},tmp,{ fileName : "kha/internal/AssetsBuilder.hx", lineNumber : 130, className : "kha._Assets.ImageList", methodName : "khaIconLoad"});
+	}
+	,khaIconUnload: function() {
+		this.khaIcon.unload();
+		this.khaIcon = null;
 	}
 	,names: null
 	,__class__: kha__$Assets_ImageList

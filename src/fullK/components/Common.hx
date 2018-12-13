@@ -26,6 +26,8 @@ abstract OptionType( Int ) to Int from Int {
 }
 class Common {
     public var radiusOutline = 10.;
+    public var fontSize = 22;
+    public var font: Font;
     public var radiusInner = 4.;
     public var thick =1.5;
     public var gapW = 20.;
@@ -33,6 +35,7 @@ class Common {
     public var dia: Float;
     public var diaInner: Float;
     public function new(){
+        font = Assets.fonts.OpenSans_Regular;
         dia = radiusOutline*2;
         diaInner = radiusInner*2;
     }
@@ -92,8 +95,18 @@ class Common {
                        , cx + radiusInner, cy + 1.5*radiusInner );
     }
     inline public
-    function horiLine( g: Graphics, cx: Float, cy: Float, width ){
+    function triangleRightIn( g: Graphics, cx: Float, cy: Float ){
+        g.fillTriangle(  cx - 0.5*radiusInner, cy - radiusInner
+                       , cx + 1.5*radiusInner , cy
+                       , cx - 0.5*radiusInner, cy + radiusInner );
+    }
+    inline public
+    function horiLine( g: Graphics, cx: Float, cy: Float, width: Float ){
         g.drawLine( cx, cy + thick/2, cx + width, cy + thick/2, thick );
+    }
+    inline public
+    function vertLine( g: Graphics, cx: Float, cy: Float, width: Float ){
+        g.drawLine( cx, cy, cx, cy + width, thick );
     }
     inline public
     function hitAreaRender( i: Int, highlight: Int
@@ -108,7 +121,7 @@ class Common {
         var db = dy + dh;
         if( highlight == i ) { 
             g.opacity = 0.1;
-            g.color = Color.Red;
+            g.color   = Color.Red;
         } else {
             g.opacity = 0.05;
         }
@@ -117,6 +130,29 @@ class Common {
         g.opacity = 1.;
         return {  x: dx, y: dy, r: dr , b: db };
     }
+    inline public
+    function hitAreaRenderV( i: Int, highlight: Int
+                          , g: Graphics
+                          , cx: Float, cy: Float
+                          , wid: Float ){
+        var dx = cx - radiusOutline - thick;
+        var dy = cy - radiusOutline - thick;
+        var dw = dia + thick*2;
+        var dr = dx + dw;
+        var dh = wid + thick*2;
+        var db = dy + dh;
+        if( highlight == i ) { 
+            g.opacity = 0.1;
+            g.color   = Color.Red;
+        } else {
+            g.opacity = 0.05;
+        }
+        g.fillRect( dx, dy, dw, dh );
+        if( highlight == i ) g.color = Color.White;
+        g.opacity = 1.;
+        return {  x: dx, y: dy, r: dr , b: db };
+    }
+    
     inline public
     function dy():Float {
         return dia + gapH;

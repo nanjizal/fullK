@@ -12,12 +12,13 @@ using kha.graphics2.GraphicsExtension;
 
 class ViewOptions {
     public var visible: Bool = true;
+    public var enabled: Bool = true;
     var highlight: Int = -1;
     public var optionType = SQUARE;
     var radiusOutline = 10.;
     var radiusInner = 4.;
-    var x = 100.;
-    var y = 100.;
+    public var x = 100.;
+    public var y = 100.;
     var thick =1.5;
     public var gapW = 20.;
     public var gapH = 16.;
@@ -48,7 +49,9 @@ class ViewOptions {
             label = labels[ i ];
             fontWid = font.width( size, label );
             // hit area
-            hitArea[ i ] = common.hitAreaRender( i, highlight, g, cx, cy, fontWid + gapW+ dia*2 );
+            if( enabled ){
+                hitArea[ i ] = common.hitAreaRender( i, highlight, g, cx, cy, fontWid + gapW+ dia*2 );
+            }
             g.opacity = 1.;
             // graphics
             drawOuter( g, cx, cy );
@@ -110,6 +113,7 @@ class ViewOptions {
         }
     }
     public function hitCheck( px: Float, py: Float ){
+        if( !enabled ) return;
         var hit = hitTest( px, py );
         if( hit != -1 ){
             if( optionChange != null ){
@@ -119,7 +123,9 @@ class ViewOptions {
         }
     }
     public function updateState( hit: Int ){
-        if( optionType == ROUND || optionType == TRIANGLE || optionType == SQUARE ){
+        if( optionType == ROUND 
+         || optionType == TRIANGLE 
+         || optionType == SQUARE ){
             for( i in 0...state.length ){
                 state[ i ] = ( hit == i );
             }

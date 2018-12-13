@@ -9,16 +9,23 @@ import kha.input.Mouse;
 import kha.graphics2.GraphicsExtension;
 import fullK.components.Common;
 using kha.graphics2.GraphicsExtension;
+@:enum
+abstract Orientation( Bool ) to Bool from Bool {
+    var VERTICAL   = false;
+    var HORIZONTAL = true;
+}
 typedef Slidee = { min:  Float
                  , max:  Float
                  , value: Float
                  , ?flip:  Bool
                  , ?clampInteger: Bool }
 class SliderBars {
+    public var orientation = HORIZONTAL;
+    public var visible: Bool = true;
+    public var enabled: Bool = true;
     var dragging = false;
     public var optionType = SQUARE;
     var highlight: Int = -1;
-    public var visible: Bool = true;
     var x = 100.;
     var y = 100.;
     public var gapH = 16.;
@@ -45,19 +52,39 @@ class SliderBars {
         var pos: Float;
         for( i in 0...widths.length ){
             wid = widths[ i ];
-            common.horiLine( g, cx, cy, wid );
             slidee = slidees[ i ];
-            pos = slideePos( slidee, cx, wid );
-            if( slidee.clampInteger ){
-                g.drawString( Std.string( Math.round( slidee.value ) )
+            switch( orientation ){
+                case HORIZONTAL:
+                    common.horiLine( g, cx, cy, wid );
+                    pos = slideePos( slidee, cx, wid );
+                    if( slidee.clampInteger ){
+                        g.drawString( Std.string( Math.round( slidee.value ) )
                             , pos + common.radiusOutline, cy - common.gapH - common.radiusInner );
-            } else {
-                g.drawString( Std.string( Math.round( slidee.value * 100 )/100 )
+                    } else {
+                        g.drawString( Std.string( Math.round( slidee.value * 100 )/100 )
                             , pos + common.radiusOutline, cy - common.gapH - common.radiusInner );
+                    }
+                    renderSlideeX( g, pos, cy );
+                    if( enabled ){
+                        hitArea[ i ] = common.hitAreaRender( i, highlight, g, cx, cy, wid + common.dia );
+                    }
+                    cy += common.dy();
+                case VERTICAL:
+                    common.vertLine( g, cx, cy, wid );
+                    pos = slideePos( slidee, cy, wid );
+                    if( slidee.clampInteger ){
+                        g.drawString( Std.string( Math.round( slidee.value ) )
+                            , cx + common.gapH - 2*common.radiusInner, pos - 2.2*common.radiusOutline );
+                    } else {
+                        g.drawString( Std.string( Math.round( slidee.value * 100 )/100 )
+                            , cx + common.gapH - 2*common.radiusInner, pos - 2.2*common.radiusOutline );
+                    }
+                    renderSlideeY( g, cx, pos );
+                    if( enabled ){
+                        hitArea[ i ] = common.hitAreaRenderV( i, highlight, g, cx, cy, wid + common.dia );
+                    }
+                    cx += common.dy()*1.8;
             }
-            renderSlidee( g, pos, cy );//cx + wid/2
-            hitArea[ i ] = common.hitAreaRender( i, highlight, g, cx, cy, wid + common.dia );
-            cy += common.dy();
         }
     }
     inline
@@ -88,7 +115,7 @@ class SliderBars {
         if( dx > width - 0.1 ) dx = width;
         return cx + dx;
     }
-    public function renderSlidee( g: Graphics, cx: Float, cy: Float ){
+    public function renderSlideeX( g: Graphics, cx: Float, cy: Float ){
         switch( optionType ){
             case ROUND, ROUND_TICK:
                 common.circleIn( g, cx, cy + common.thick/4 );
@@ -98,17 +125,33 @@ class SliderBars {
                 common.triangleUpIn( g, cx, cy - common.thick - common.thick/4 );
         }
     }
+    public function renderSlideeY( g: Graphics, cx: Float, cy: Float ){
+        switch( optionType ){
+            case ROUND, ROUND_TICK:
+                common.circleIn( g, cx, cy );
+            case SQUARE, CROSS, TICK:
+                common.squareIn( g, cx + common.thick/4, cy );
+            case TRIANGLE, TRIANGLE_TICK:
+                common.triangleRightIn( g, cx, cy - common.thick - common.thick/4 );
+        }
+    }
     public function updateValue( hit: Int, px: Float, py: Float ){
         var slidee = slidees[ hit ];
         var wid    = widths[ hit ];
-        var dx     = px - x;
+        var delta: Float;
+        switch( orientation ){
+            case HORIZONTAL:
+                delta = px - x;
+            case VERTICAL:
+                delta = py - y;
+        }
         var dw     = slidee.max - slidee.min;
         var dif    = dw/wid;
         var value: Float;
         if( !slidee.flip ){
-            value = slidee.min + dx*dif;
+            value = slidee.min + delta*dif;
         } else {
-            value = slidee.min + ( wid - dx )*dif;
+            value = slidee.min + ( wid - delta )*dif;
         }
         if( value > slidee.max ) value = slidee.max;
         if( value < slidee.min ) value = slidee.min;
@@ -137,6 +180,7 @@ class SliderBars {
     }
     
     public function hitCheck( px: Float, py: Float ){
+        if( !enabled ) return;
         var hit = hitTest( px, py );
         if( hit != -1 ){
             updateSlider( hit, px, py );
