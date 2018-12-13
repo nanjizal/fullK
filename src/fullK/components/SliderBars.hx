@@ -29,7 +29,7 @@ class SliderBars {
     var x = 100.;
     var y = 100.;
     public var gapH = 16.;
-    var common: Common = new Common();
+    var common: Common;
     public var widths: Array<Int>;
     public var slidees: Array<Slidee>;
     var hitArea = new Array<HitArea>();
@@ -38,9 +38,10 @@ class SliderBars {
     var lastHit: Int;
     var lastX: Float;
     var lastY: Float;
-    public function new( x_: Float = 100, y_: Float = 100){
+    public function new( x_: Float = 100, y_: Float = 100, common_: Common ){
         x = x_;
         y = y_;
+        common = common_;
     }
     public function renderView( g: Graphics ){
         if( visible == false ) return;
@@ -55,8 +56,11 @@ class SliderBars {
             slidee = slidees[ i ];
             switch( orientation ){
                 case HORIZONTAL:
-                    common.horiLine( g, cx, cy, wid );
                     pos = slideePos( slidee, cx, wid );
+                    if( enabled ){
+                        hitArea[ i ] = common.hitAreaRender( i, highlight, g, cx, cy, wid + common.dia );
+                    }
+                    common.horiLine( g, cx, cy, wid );
                     if( slidee.clampInteger ){
                         g.drawString( Std.string( Math.round( slidee.value ) )
                             , pos + common.radiusOutline, cy - common.gapH - common.radiusInner );
@@ -65,13 +69,13 @@ class SliderBars {
                             , pos + common.radiusOutline, cy - common.gapH - common.radiusInner );
                     }
                     renderSlideeX( g, pos, cy );
-                    if( enabled ){
-                        hitArea[ i ] = common.hitAreaRender( i, highlight, g, cx, cy, wid + common.dia );
-                    }
                     cy += common.dy();
                 case VERTICAL:
-                    common.vertLine( g, cx, cy, wid );
                     pos = slideePos( slidee, cy, wid );
+                    if( enabled ){
+                        hitArea[ i ] = common.hitAreaRenderV( i, highlight, g, cx, cy, wid + common.dia );
+                    }
+                    common.vertLine( g, cx, cy, wid );
                     if( slidee.clampInteger ){
                         g.drawString( Std.string( Math.round( slidee.value ) )
                             , cx + common.gapH - 2*common.radiusInner, pos - 2.2*common.radiusOutline );
@@ -80,15 +84,13 @@ class SliderBars {
                             , cx + common.gapH - 2*common.radiusInner, pos - 2.2*common.radiusOutline );
                     }
                     renderSlideeY( g, cx, pos );
-                    if( enabled ){
-                        hitArea[ i ] = common.hitAreaRenderV( i, highlight, g, cx, cy, wid + common.dia );
-                    }
+                    
                     cx += common.dy()*1.8;
             }
         }
     }
     inline
-    function slideePos( slidee: Slidee, cx: Float, width: Float ){
+    function slideePos( slidee: Slidee, startPos: Float, width: Float ){
         var flip = slidee.flip;
         if( flip == null ) slidee.flip = false;
         if( slidee.clampInteger == null ) slidee.clampInteger = false;
@@ -109,11 +111,11 @@ class SliderBars {
         } else {
             dValue = max - value - min;
         }
-        var dx = dValue*dif;
+        var delta = dValue*dif;
         // clamp outputs to range
-        if( dx < 0.1 ) dx = 0.;
-        if( dx > width - 0.1 ) dx = width;
-        return cx + dx;
+        if( delta < 0.1 ) delta = 0.;
+        if( delta > width - 0.1 ) delta = width;
+        return startPos + delta;
     }
     public function renderSlideeX( g: Graphics, cx: Float, cy: Float ){
         switch( optionType ){

@@ -45,11 +45,11 @@ class FrameStats{
         g2.fontSize = 22;
         //var dh = font.height( g2.fontSize );
         g2.color = bgColor;
-        g2.opacity = bgAlpha;
+        //g2.opacity = bgAlpha;
         g2.fillRect( 2, 2, 255, 37 );
         g2.color = subColor;
         g2.drawRect( 0, 0, 259, 39, 2 );
-        g2.opacity = foreAlpha;
+        //g2.opacity = foreAlpha;
         g2.color = foreColor;
         g2.drawString( cacheFps, 10, 10 );
         g2.fontSize = 15;

@@ -187,11 +187,9 @@ fullK_MainTemplate.prototype = {
 				g2.set_font(_this.font);
 				g2.set_fontSize(22);
 				g2.set_color(_this.bgColor);
-				g2.set_opacity(_this.bgAlpha);
 				g2.fillRect(2,2,255,37);
 				g2.set_color(_this.subColor);
 				g2.drawRect(0,0,259,39,2);
-				g2.set_opacity(_this.foreAlpha);
 				g2.set_color(_this.foreColor);
 				g2.drawString(_this.cacheFps,10,10);
 				g2.set_fontSize(15);
@@ -249,11 +247,9 @@ fullK_MainTemplate.prototype = {
 				g2.set_font(_this.font);
 				g2.set_fontSize(22);
 				g2.set_color(_this.bgColor);
-				g2.set_opacity(_this.bgAlpha);
 				g2.fillRect(2,2,255,37);
 				g2.set_color(_this.subColor);
 				g2.drawRect(0,0,259,39,2);
-				g2.set_opacity(_this.foreAlpha);
 				g2.set_color(_this.foreColor);
 				g2.drawString(_this.cacheFps,10,10);
 				g2.set_fontSize(15);
@@ -302,11 +298,9 @@ fullK_MainTemplate.prototype = {
 			g2.set_font(_this.font);
 			g2.set_fontSize(22);
 			g2.set_color(_this.bgColor);
-			g2.set_opacity(_this.bgAlpha);
 			g2.fillRect(2,2,255,37);
 			g2.set_color(_this.subColor);
 			g2.drawRect(0,0,259,39,2);
-			g2.set_opacity(_this.foreAlpha);
 			g2.set_color(_this.foreColor);
 			g2.drawString(_this.cacheFps,10,10);
 			g2.set_fontSize(15);
@@ -320,9 +314,6 @@ fullK_MainTemplate.prototype = {
 	,__class__: fullK_MainTemplate
 };
 var MainApp = function() {
-	this.slidersVertical = new fullK_components_SliderBars(100,350);
-	this.slidersHorizontal = new fullK_components_SliderBars(100,200);
-	this.options = new fullK_components_ViewOptions(300,100);
 	fullK_MainTemplate.call(this);
 };
 $hxClasses["MainApp"] = MainApp;
@@ -332,13 +323,18 @@ MainApp.main = function() {
 };
 MainApp.__super__ = fullK_MainTemplate;
 MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
-	options: null
+	common: null
+	,options: null
 	,slidersHorizontal: null
 	,slidersVertical: null
 	,dragImage: null
 	,dragText: null
 	,setup: function() {
-		haxe_Log.trace("setup",{ fileName : "MainApp.hx", lineNumber : 19, className : "MainApp", methodName : "setup"});
+		haxe_Log.trace("setup",{ fileName : "MainApp.hx", lineNumber : 20, className : "MainApp", methodName : "setup"});
+		this.common = new fullK_components_Common();
+		this.options = new fullK_components_ViewOptions(300,100,this.common);
+		this.slidersHorizontal = new fullK_components_SliderBars(100,200,this.common);
+		this.slidersVertical = new fullK_components_SliderBars(100,350,this.common);
 		this.setupDragImage();
 		this.setupDragText();
 		this.frameStatGreySkin();
@@ -346,7 +342,7 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		this.setupSliderBars();
 	}
 	,setupDragImage: function() {
-		this.dragImage = new fullK_components_DragGraphic();
+		this.dragImage = new fullK_components_DragGraphic(this.common);
 		this.dragImage.graphicType = 1;
 		this.dragImage.image = kha_Assets.images.khaIcon;
 		this.dragImage.x = 500.;
@@ -354,7 +350,7 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		this.dragImage.set_scale(0.3);
 	}
 	,setupDragText: function() {
-		this.dragText = new fullK_components_DragGraphic();
+		this.dragText = new fullK_components_DragGraphic(this.common);
 		this.dragText.graphicType = 2;
 		this.dragText.label = "draggable text";
 		this.dragText.x = 350;
@@ -407,7 +403,7 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 			}
 		};
 		this.options.optionOver = function(id1) {
-			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 79, className : "MainApp", methodName : "setupOptions"});
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 84, className : "MainApp", methodName : "setupOptions"});
 		};
 	}
 	,setupSliderBars: function() {
@@ -416,10 +412,10 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		this.slidersHorizontal.slidees = [{ min : 300., max : 2000., value : 300., flip : false},{ min : 300., max : 1024., value : 370., clampInteger : true},{ min : 300., max : 600., value : 400., flip : false}];
 		this.slidersHorizontal.widths = [150,150,150];
 		this.slidersHorizontal.sliderOver = function(id) {
-			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 88, className : "MainApp", methodName : "setupSliderBars"});
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 93, className : "MainApp", methodName : "setupSliderBars"});
 		};
 		this.slidersHorizontal.sliderChange = function(id1,value) {
-			haxe_Log.trace("slidee Horizontal " + id1 + ": " + value,{ fileName : "MainApp.hx", lineNumber : 90, className : "MainApp", methodName : "setupSliderBars"});
+			haxe_Log.trace("slidee Horizontal " + id1 + ": " + value,{ fileName : "MainApp.hx", lineNumber : 95, className : "MainApp", methodName : "setupSliderBars"});
 			switch(id1) {
 			case 0:
 				_gthis.dragText.x = value;
@@ -436,10 +432,10 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		this.slidersVertical.slidees = [{ min : 300., max : 600., value : 370., clampInteger : true},{ min : 0.1, max : 1.19, value : 0.3, flip : false},{ min : 0.5, max : 3.5, value : 0.3, flip : false}];
 		this.slidersVertical.widths = [150,150,150];
 		this.slidersVertical.sliderOver = function(id2) {
-			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 107, className : "MainApp", methodName : "setupSliderBars"});
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 112, className : "MainApp", methodName : "setupSliderBars"});
 		};
 		this.slidersVertical.sliderChange = function(id3,value1) {
-			haxe_Log.trace("slidee Vertical" + id3 + ": " + value1,{ fileName : "MainApp.hx", lineNumber : 109, className : "MainApp", methodName : "setupSliderBars"});
+			haxe_Log.trace("slidee Vertical" + id3 + ": " + value1,{ fileName : "MainApp.hx", lineNumber : 114, className : "MainApp", methodName : "setupSliderBars"});
 			switch(id3) {
 			case 0:
 				_gthis.dragImage.y = value1;
@@ -499,6 +495,7 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		this.slidersVertical.upCheck(this.interaction.mouseX,this.interaction.mouseY);
 	}
 	,render2D: function(g) {
+		g.set_opacity(1.);
 		g.drawRect(100,100,100,30);
 		g.drawString("hello world",105,105);
 		this.options.renderView(g);
@@ -539,25 +536,23 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		case 0:
 			break;
 		case 1:
-			g.drawImage(_this.image,_this.x / _this.scale,_this.y / _this.scale);
-			g.set_opacity(0.2);
 			if(_this.highlight != -1) {
-				g.set_color(-65536);
+				g.set_color(_this.common.lowRed);
+				g.fillRect(_this.x / _this.scale,_this.y / _this.scale,_this.width / _this.scale,_this.height / _this.scale);
+				g.set_color(_this.common.lowWhite);
 				g.drawRect(_this.x / _this.scale,_this.y / _this.scale,_this.width / _this.scale,_this.height / _this.scale,_this.common.thick / _this.scale);
 				g.set_color(-1);
-				g.set_opacity(1.);
 			}
+			g.drawImage(_this.image,_this.x / _this.scale,_this.y / _this.scale);
 			break;
 		case 2:
-			g.set_opacity(0.05);
 			if(_this.highlight != -1) {
-				g.set_color(-65536);
+				g.set_color(_this.common.lowRed);
+			} else {
+				g.set_color(_this.common.lowWhite);
 			}
 			g.fillRect(Math.round(_this.x / _this.scale - _this.spaceW),Math.round(_this.y / _this.scale),Math.round(_this.width / _this.scale),Math.round(_this.height / _this.scale));
-			if(_this.highlight != -1) {
-				g.set_color(-1);
-			}
-			g.set_opacity(1.);
+			g.set_color(-1);
 			g.drawString(_this.label,Math.round(_this.x / _this.scale),Math.round(_this.y / _this.scale));
 			break;
 		}
@@ -574,7 +569,6 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		_this2._12 = transformation1._12;
 		_this2._22 = transformation1._22;
 		_this.area = { x : _this.x - _this.spaceW, y : _this.y, r : _this.x + _this.width, b : _this.y + _this.height};
-		g.set_opacity(1.);
 		g.drawString("draggable image",this.dragImage.x,this.dragImage.y - 25);
 		var _this3 = this.dragText;
 		var _this__001 = 1;
@@ -611,25 +605,23 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		case 0:
 			break;
 		case 1:
-			g.drawImage(_this3.image,_this3.x / _this3.scale,_this3.y / _this3.scale);
-			g.set_opacity(0.2);
 			if(_this3.highlight != -1) {
-				g.set_color(-65536);
+				g.set_color(_this3.common.lowRed);
+				g.fillRect(_this3.x / _this3.scale,_this3.y / _this3.scale,_this3.width / _this3.scale,_this3.height / _this3.scale);
+				g.set_color(_this3.common.lowWhite);
 				g.drawRect(_this3.x / _this3.scale,_this3.y / _this3.scale,_this3.width / _this3.scale,_this3.height / _this3.scale,_this3.common.thick / _this3.scale);
 				g.set_color(-1);
-				g.set_opacity(1.);
 			}
+			g.drawImage(_this3.image,_this3.x / _this3.scale,_this3.y / _this3.scale);
 			break;
 		case 2:
-			g.set_opacity(0.05);
 			if(_this3.highlight != -1) {
-				g.set_color(-65536);
+				g.set_color(_this3.common.lowRed);
+			} else {
+				g.set_color(_this3.common.lowWhite);
 			}
 			g.fillRect(Math.round(_this3.x / _this3.scale - _this3.spaceW),Math.round(_this3.y / _this3.scale),Math.round(_this3.width / _this3.scale),Math.round(_this3.height / _this3.scale));
-			if(_this3.highlight != -1) {
-				g.set_color(-1);
-			}
-			g.set_opacity(1.);
+			g.set_color(-1);
 			g.drawString(_this3.label,Math.round(_this3.x / _this3.scale),Math.round(_this3.y / _this3.scale));
 			break;
 		}
@@ -830,11 +822,9 @@ fullK_FrameStats.prototype = {
 		g2.set_font(this.font);
 		g2.set_fontSize(22);
 		g2.set_color(this.bgColor);
-		g2.set_opacity(this.bgAlpha);
 		g2.fillRect(2,2,255,37);
 		g2.set_color(this.subColor);
 		g2.drawRect(0,0,259,39,2);
-		g2.set_opacity(this.foreAlpha);
 		g2.set_color(this.foreColor);
 		g2.drawString(this.cacheFps,10,10);
 		g2.set_fontSize(15);
@@ -1128,6 +1118,50 @@ fullK_browser_FullScreen.setup = function() {
 	win.onresize = resize;
 	resize();
 };
+var fullK_components_ColorHelper = function() { };
+$hxClasses["fullK.components.ColorHelper"] = fullK_components_ColorHelper;
+fullK_components_ColorHelper.__name__ = true;
+fullK_components_ColorHelper.get_percentHex = function() {
+	return [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255];
+};
+fullK_components_ColorHelper.percentWhite = function(percent) {
+	var v = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][percent];
+	return -16777216 | v << 16 | v << 8 | v;
+};
+fullK_components_ColorHelper.percentBlack = function(percent) {
+	var v = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][100 - percent];
+	return -16777216 | v << 16 | v << 8 | v;
+};
+fullK_components_ColorHelper.argb = function(a,r,g,b) {
+	return a << 24 | r << 16 | g << 8 | b;
+};
+fullK_components_ColorHelper.percentColor = function(rPercent,gPercent,bPercent) {
+	return -16777216 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][rPercent] << 16 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][gPercent] << 8 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][bPercent];
+};
+fullK_components_ColorHelper.percentDarkColor = function(rPercent,gPercent,bPercent) {
+	return -16777216 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][100 - rPercent] << 16 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][100 - gPercent] << 8 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][100 - bPercent];
+};
+fullK_components_ColorHelper.percentRed = function(rPercent) {
+	return -16777216 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][rPercent] << 16 | 0 | 0;
+};
+fullK_components_ColorHelper.percentGreen = function(gPercent) {
+	return -65536 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][gPercent] << 8 | 255;
+};
+fullK_components_ColorHelper.percentBlue = function(bPercent) {
+	return -256 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][bPercent];
+};
+fullK_components_ColorHelper.percentRedSoft = function(rPercent,percentSoft) {
+	var soft = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][percentSoft];
+	return -16777216 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][rPercent] << 16 | soft << 8 | soft;
+};
+fullK_components_ColorHelper.percentGreenSoft = function(gPercent,percentSoft) {
+	var soft = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][percentSoft];
+	return -16777216 | soft << 16 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][gPercent] << 8 | soft;
+};
+fullK_components_ColorHelper.percentBlueSoft = function(bPercent,percentSoft) {
+	var soft = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][percentSoft];
+	return -16777216 | soft << 16 | soft << 8 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][bPercent];
+};
 var fullK_components_Common = function() {
 	this.gapH = 16.;
 	this.gapW = 20.;
@@ -1138,6 +1172,313 @@ var fullK_components_Common = function() {
 	this.font = kha_Assets.fonts.OpenSans_Regular;
 	this.dia = this.radiusOutline * 2;
 	this.diaInner = this.radiusInner * 2;
+	var inlarr_0 = 0;
+	var inlarr_1 = 48;
+	var inlarr_2 = 80;
+	var inlarr_3 = 128;
+	var inlarr_4 = 10;
+	var inlarr_5 = 13;
+	var inlarr_6 = 15;
+	var inlarr_7 = 18;
+	var inlarr_8 = 20;
+	var inlarr_9 = 23;
+	var inlarr_10 = 25;
+	var inlarr_11 = 28;
+	var inlarr_12 = 31;
+	var inlarr_13 = 33;
+	var inlarr_14 = 36;
+	var inlarr_15 = 38;
+	var inlarr_16 = 41;
+	var inlarr_17 = 43;
+	var inlarr_18 = 46;
+	var inlarr_19 = 48;
+	var inlarr_20 = 51;
+	var inlarr_21 = 54;
+	var inlarr_22 = 56;
+	var inlarr_23 = 59;
+	var inlarr_24 = 61;
+	var inlarr_25 = 64;
+	var inlarr_26 = 66;
+	var inlarr_27 = 69;
+	var inlarr_28 = 71;
+	var inlarr_29 = 74;
+	var inlarr_30 = 76;
+	var inlarr_31 = 79;
+	var inlarr_32 = 82;
+	var inlarr_33 = 84;
+	var inlarr_34 = 87;
+	var inlarr_35 = 89;
+	var inlarr_36 = 92;
+	var inlarr_37 = 94;
+	var inlarr_38 = 97;
+	var inlarr_39 = 99;
+	var inlarr_40 = 102;
+	var inlarr_41 = 105;
+	var inlarr_42 = 107;
+	var inlarr_43 = 110;
+	var inlarr_44 = 112;
+	var inlarr_45 = 115;
+	var inlarr_46 = 117;
+	var inlarr_47 = 120;
+	var inlarr_48 = 122;
+	var inlarr_49 = 125;
+	var inlarr_50 = 127;
+	var inlarr_51 = 130;
+	var inlarr_52 = 133;
+	var inlarr_53 = 135;
+	var inlarr_54 = 138;
+	var inlarr_55 = 140;
+	var inlarr_56 = 143;
+	var inlarr_57 = 145;
+	var inlarr_58 = 148;
+	var inlarr_59 = 150;
+	var inlarr_60 = 153;
+	var inlarr_61 = 156;
+	var inlarr_62 = 158;
+	var inlarr_63 = 161;
+	var inlarr_64 = 163;
+	var inlarr_65 = 166;
+	var inlarr_66 = 168;
+	var inlarr_67 = 171;
+	var inlarr_68 = 173;
+	var inlarr_69 = 176;
+	var inlarr_70 = 178;
+	var inlarr_71 = 181;
+	var inlarr_72 = 186;
+	var inlarr_73 = 189;
+	var inlarr_74 = 191;
+	var inlarr_75 = 194;
+	var inlarr_76 = 196;
+	var inlarr_77 = 199;
+	var inlarr_78 = 201;
+	var inlarr_79 = 201;
+	var inlarr_80 = 204;
+	var inlarr_81 = 207;
+	var inlarr_82 = 209;
+	var inlarr_83 = 212;
+	var inlarr_84 = 214;
+	var inlarr_85 = 217;
+	var inlarr_86 = 219;
+	var inlarr_87 = 222;
+	var inlarr_88 = 224;
+	var inlarr_89 = 227;
+	var inlarr_90 = 229;
+	var inlarr_91 = 232;
+	var inlarr_92 = 235;
+	var inlarr_93 = 237;
+	var inlarr_94 = 240;
+	var inlarr_95 = 242;
+	var inlarr_96 = 245;
+	var inlarr_97 = 247;
+	var inlarr_98 = 250;
+	var inlarr_99 = 252;
+	var inlarr_100 = 255;
+	var soft = inlarr_10;
+	var inlarr_01 = 0;
+	var inlarr_110 = 48;
+	var inlarr_210 = 80;
+	var inlarr_310 = 128;
+	var inlarr_410 = 10;
+	var inlarr_510 = 13;
+	var inlarr_610 = 15;
+	var inlarr_710 = 18;
+	var inlarr_810 = 20;
+	var inlarr_910 = 23;
+	var inlarr_101 = 25;
+	var inlarr_111 = 28;
+	var inlarr_121 = 31;
+	var inlarr_131 = 33;
+	var inlarr_141 = 36;
+	var inlarr_151 = 38;
+	var inlarr_161 = 41;
+	var inlarr_171 = 43;
+	var inlarr_181 = 46;
+	var inlarr_191 = 48;
+	var inlarr_201 = 51;
+	var inlarr_211 = 54;
+	var inlarr_221 = 56;
+	var inlarr_231 = 59;
+	var inlarr_241 = 61;
+	var inlarr_251 = 64;
+	var inlarr_261 = 66;
+	var inlarr_271 = 69;
+	var inlarr_281 = 71;
+	var inlarr_291 = 74;
+	var inlarr_301 = 76;
+	var inlarr_311 = 79;
+	var inlarr_321 = 82;
+	var inlarr_331 = 84;
+	var inlarr_341 = 87;
+	var inlarr_351 = 89;
+	var inlarr_361 = 92;
+	var inlarr_371 = 94;
+	var inlarr_381 = 97;
+	var inlarr_391 = 99;
+	var inlarr_401 = 102;
+	var inlarr_411 = 105;
+	var inlarr_421 = 107;
+	var inlarr_431 = 110;
+	var inlarr_441 = 112;
+	var inlarr_451 = 115;
+	var inlarr_461 = 117;
+	var inlarr_471 = 120;
+	var inlarr_481 = 122;
+	var inlarr_491 = 125;
+	var inlarr_501 = 127;
+	var inlarr_511 = 130;
+	var inlarr_521 = 133;
+	var inlarr_531 = 135;
+	var inlarr_541 = 138;
+	var inlarr_551 = 140;
+	var inlarr_561 = 143;
+	var inlarr_571 = 145;
+	var inlarr_581 = 148;
+	var inlarr_591 = 150;
+	var inlarr_601 = 153;
+	var inlarr_611 = 156;
+	var inlarr_621 = 158;
+	var inlarr_631 = 161;
+	var inlarr_641 = 163;
+	var inlarr_651 = 166;
+	var inlarr_661 = 168;
+	var inlarr_671 = 171;
+	var inlarr_681 = 173;
+	var inlarr_691 = 176;
+	var inlarr_701 = 178;
+	var inlarr_711 = 181;
+	var inlarr_721 = 186;
+	var inlarr_731 = 189;
+	var inlarr_741 = 191;
+	var inlarr_751 = 194;
+	var inlarr_761 = 196;
+	var inlarr_771 = 199;
+	var inlarr_781 = 201;
+	var inlarr_791 = 201;
+	var inlarr_801 = 204;
+	var inlarr_811 = 207;
+	var inlarr_821 = 209;
+	var inlarr_831 = 212;
+	var inlarr_841 = 214;
+	var inlarr_851 = 217;
+	var inlarr_861 = 219;
+	var inlarr_871 = 222;
+	var inlarr_881 = 224;
+	var inlarr_891 = 227;
+	var inlarr_901 = 229;
+	var inlarr_911 = 232;
+	var inlarr_921 = 235;
+	var inlarr_931 = 237;
+	var inlarr_941 = 240;
+	var inlarr_951 = 242;
+	var inlarr_961 = 245;
+	var inlarr_971 = 247;
+	var inlarr_981 = 250;
+	var inlarr_991 = 252;
+	var inlarr_1001 = 255;
+	this.lowRed = -16777216 | inlarr_151 << 16 | soft << 8 | soft;
+	var inlarr_02 = 0;
+	var inlarr_112 = 48;
+	var inlarr_212 = 80;
+	var inlarr_312 = 128;
+	var inlarr_412 = 10;
+	var inlarr_512 = 13;
+	var inlarr_612 = 15;
+	var inlarr_712 = 18;
+	var inlarr_812 = 20;
+	var inlarr_912 = 23;
+	var inlarr_102 = 25;
+	var inlarr_113 = 28;
+	var inlarr_122 = 31;
+	var inlarr_132 = 33;
+	var inlarr_142 = 36;
+	var inlarr_152 = 38;
+	var inlarr_162 = 41;
+	var inlarr_172 = 43;
+	var inlarr_182 = 46;
+	var inlarr_192 = 48;
+	var inlarr_202 = 51;
+	var inlarr_213 = 54;
+	var inlarr_222 = 56;
+	var inlarr_232 = 59;
+	var inlarr_242 = 61;
+	var inlarr_252 = 64;
+	var inlarr_262 = 66;
+	var inlarr_272 = 69;
+	var inlarr_282 = 71;
+	var inlarr_292 = 74;
+	var inlarr_302 = 76;
+	var inlarr_313 = 79;
+	var inlarr_322 = 82;
+	var inlarr_332 = 84;
+	var inlarr_342 = 87;
+	var inlarr_352 = 89;
+	var inlarr_362 = 92;
+	var inlarr_372 = 94;
+	var inlarr_382 = 97;
+	var inlarr_392 = 99;
+	var inlarr_402 = 102;
+	var inlarr_413 = 105;
+	var inlarr_422 = 107;
+	var inlarr_432 = 110;
+	var inlarr_442 = 112;
+	var inlarr_452 = 115;
+	var inlarr_462 = 117;
+	var inlarr_472 = 120;
+	var inlarr_482 = 122;
+	var inlarr_492 = 125;
+	var inlarr_502 = 127;
+	var inlarr_513 = 130;
+	var inlarr_522 = 133;
+	var inlarr_532 = 135;
+	var inlarr_542 = 138;
+	var inlarr_552 = 140;
+	var inlarr_562 = 143;
+	var inlarr_572 = 145;
+	var inlarr_582 = 148;
+	var inlarr_592 = 150;
+	var inlarr_602 = 153;
+	var inlarr_613 = 156;
+	var inlarr_622 = 158;
+	var inlarr_632 = 161;
+	var inlarr_642 = 163;
+	var inlarr_652 = 166;
+	var inlarr_662 = 168;
+	var inlarr_672 = 171;
+	var inlarr_682 = 173;
+	var inlarr_692 = 176;
+	var inlarr_702 = 178;
+	var inlarr_713 = 181;
+	var inlarr_722 = 186;
+	var inlarr_732 = 189;
+	var inlarr_742 = 191;
+	var inlarr_752 = 194;
+	var inlarr_762 = 196;
+	var inlarr_772 = 199;
+	var inlarr_782 = 201;
+	var inlarr_792 = 201;
+	var inlarr_802 = 204;
+	var inlarr_813 = 207;
+	var inlarr_822 = 209;
+	var inlarr_832 = 212;
+	var inlarr_842 = 214;
+	var inlarr_852 = 217;
+	var inlarr_862 = 219;
+	var inlarr_872 = 222;
+	var inlarr_882 = 224;
+	var inlarr_892 = 227;
+	var inlarr_902 = 229;
+	var inlarr_913 = 232;
+	var inlarr_922 = 235;
+	var inlarr_932 = 237;
+	var inlarr_942 = 240;
+	var inlarr_952 = 242;
+	var inlarr_962 = 245;
+	var inlarr_972 = 247;
+	var inlarr_982 = 250;
+	var inlarr_992 = 252;
+	var inlarr_1002 = 255;
+	var v = inlarr_152;
+	this.lowWhite = -16777216 | v << 16 | v << 8 | v;
 };
 $hxClasses["fullK.components.Common"] = fullK_components_Common;
 fullK_components_Common.__name__ = true;
@@ -1151,6 +1492,8 @@ fullK_components_Common.prototype = {
 	,gapH: null
 	,dia: null
 	,diaInner: null
+	,lowRed: null
+	,lowWhite: null
 	,circleOut: function(g,cx,cy) {
 		kha_graphics2_GraphicsExtension.drawCircle(g,cx,cy,this.radiusOutline,this.thick);
 	}
@@ -1210,16 +1553,15 @@ fullK_components_Common.prototype = {
 		var dh = this.dia + this.thick * 2;
 		var db = dy + dh;
 		if(highlight == i) {
-			g.set_opacity(0.1);
-			g.set_color(-65536);
+			g.set_color(this.lowRed);
+			g.fillRect(dx,dy,dw,dh);
+			g.set_color(this.lowWhite);
+			g.drawRect(dx,dy,dw,dh,this.thick);
 		} else {
-			g.set_opacity(0.05);
+			g.set_color(this.lowWhite);
+			g.fillRect(dx,dy,dw,dh);
 		}
-		g.fillRect(dx,dy,dw,dh);
-		if(highlight == i) {
-			g.set_color(-1);
-		}
-		g.set_opacity(1.);
+		g.set_color(-1);
 		return { x : dx, y : dy, r : dr, b : db};
 	}
 	,hitAreaRenderV: function(i,highlight,g,cx,cy,wid) {
@@ -1230,16 +1572,15 @@ fullK_components_Common.prototype = {
 		var dh = wid + this.thick * 2;
 		var db = dy + dh;
 		if(highlight == i) {
-			g.set_opacity(0.1);
-			g.set_color(-65536);
+			g.set_color(this.lowRed);
+			g.fillRect(dx,dy,dw,dh);
+			g.set_color(this.lowWhite);
+			g.drawRect(dx,dy,dw,dh,this.thick);
 		} else {
-			g.set_opacity(0.05);
+			g.set_color(this.lowWhite);
+			g.fillRect(dx,dy,dw,dh);
 		}
-		g.fillRect(dx,dy,dw,dh);
-		if(highlight == i) {
-			g.set_color(-1);
-		}
-		g.set_opacity(1.);
+		g.set_color(-1);
 		return { x : dx, y : dy, r : dr, b : db};
 	}
 	,dy: function() {
@@ -1247,11 +1588,11 @@ fullK_components_Common.prototype = {
 	}
 	,__class__: fullK_components_Common
 };
-var fullK_components_DragGraphic = function() {
-	this.common = new fullK_components_Common();
+var fullK_components_DragGraphic = function(common_) {
 	this.graphicType = 0;
 	this.highlight = -1;
 	this.enabled = true;
+	this.common = common_;
 };
 $hxClasses["fullK.components.DragGraphic"] = fullK_components_DragGraphic;
 fullK_components_DragGraphic.__name__ = true;
@@ -1336,25 +1677,23 @@ fullK_components_DragGraphic.prototype = {
 		case 0:
 			break;
 		case 1:
-			g.drawImage(this.image,this.x / this.scale,this.y / this.scale);
-			g.set_opacity(0.2);
 			if(this.highlight != -1) {
-				g.set_color(-65536);
+				g.set_color(this.common.lowRed);
+				g.fillRect(this.x / this.scale,this.y / this.scale,this.width / this.scale,this.height / this.scale);
+				g.set_color(this.common.lowWhite);
 				g.drawRect(this.x / this.scale,this.y / this.scale,this.width / this.scale,this.height / this.scale,this.common.thick / this.scale);
 				g.set_color(-1);
-				g.set_opacity(1.);
 			}
+			g.drawImage(this.image,this.x / this.scale,this.y / this.scale);
 			break;
 		case 2:
-			g.set_opacity(0.05);
 			if(this.highlight != -1) {
-				g.set_color(-65536);
+				g.set_color(this.common.lowRed);
+			} else {
+				g.set_color(this.common.lowWhite);
 			}
 			g.fillRect(Math.round(this.x / this.scale - this.spaceW),Math.round(this.y / this.scale),Math.round(this.width / this.scale),Math.round(this.height / this.scale));
-			if(this.highlight != -1) {
-				g.set_color(-1);
-			}
-			g.set_opacity(1.);
+			g.set_color(-1);
 			g.drawString(this.label,Math.round(this.x / this.scale),Math.round(this.y / this.scale));
 			break;
 		}
@@ -1382,7 +1721,7 @@ fullK_components_DragGraphic.prototype = {
 	}
 	,__class__: fullK_components_DragGraphic
 };
-var fullK_components_SliderBars = function(x_,y_) {
+var fullK_components_SliderBars = function(x_,y_,common_) {
 	if(y_ == null) {
 		y_ = 100;
 	}
@@ -1390,7 +1729,6 @@ var fullK_components_SliderBars = function(x_,y_) {
 		x_ = 100;
 	}
 	this.hitArea = [];
-	this.common = new fullK_components_Common();
 	this.gapH = 16.;
 	this.y = 100.;
 	this.x = 100.;
@@ -1402,6 +1740,7 @@ var fullK_components_SliderBars = function(x_,y_) {
 	this.orientation = true;
 	this.x = x_;
 	this.y = y_;
+	this.common = common_;
 };
 $hxClasses["fullK.components.SliderBars"] = fullK_components_SliderBars;
 fullK_components_SliderBars.__name__ = true;
@@ -1444,7 +1783,6 @@ fullK_components_SliderBars.prototype = {
 			slidee = this.slidees[i];
 			switch(this.orientation) {
 			case false:
-				g.drawLine(cx,cy,cx,cy + wid,this.common.thick);
 				var flip = slidee.flip;
 				if(flip == null) {
 					slidee.flip = false;
@@ -1469,49 +1807,46 @@ fullK_components_SliderBars.prototype = {
 				} else {
 					dValue = max - value - min;
 				}
-				var dx = dValue * dif;
-				if(dx < 0.1) {
-					dx = 0.;
+				var delta = dValue * dif;
+				if(delta < 0.1) {
+					delta = 0.;
 				}
-				if(dx > wid - 0.1) {
-					dx = wid;
+				if(delta > wid - 0.1) {
+					delta = wid;
 				}
-				pos = cy + dx;
+				pos = cy + delta;
+				if(this.enabled) {
+					var tmp = this.hitArea;
+					var _this = this.common;
+					var dx = cx - _this.radiusOutline - _this.thick;
+					var dy = cy - _this.radiusOutline - _this.thick;
+					var dw1 = _this.dia + _this.thick * 2;
+					var dr = dx + dw1;
+					var dh = wid + this.common.dia + _this.thick * 2;
+					var db = dy + dh;
+					if(this.highlight == i) {
+						g.set_color(_this.lowRed);
+						g.fillRect(dx,dy,dw1,dh);
+						g.set_color(_this.lowWhite);
+						g.drawRect(dx,dy,dw1,dh,_this.thick);
+					} else {
+						g.set_color(_this.lowWhite);
+						g.fillRect(dx,dy,dw1,dh);
+					}
+					g.set_color(-1);
+					tmp[i] = { x : dx, y : dy, r : dr, b : db};
+				}
+				g.drawLine(cx,cy,cx,cy + wid,this.common.thick);
 				if(slidee.clampInteger) {
 					g.drawString(Std.string(Math.round(slidee.value)),cx + this.common.gapH - 2 * this.common.radiusInner,pos - 2.2 * this.common.radiusOutline);
 				} else {
 					g.drawString(Std.string(Math.round(slidee.value * 100) / 100),cx + this.common.gapH - 2 * this.common.radiusInner,pos - 2.2 * this.common.radiusOutline);
 				}
 				this.renderSlideeY(g,cx,pos);
-				if(this.enabled) {
-					var tmp = this.hitArea;
-					var _this = this.common;
-					var highlight = this.highlight;
-					var dx1 = cx - _this.radiusOutline - _this.thick;
-					var dy = cy - _this.radiusOutline - _this.thick;
-					var dw1 = _this.dia + _this.thick * 2;
-					var dr = dx1 + dw1;
-					var dh = wid + this.common.dia + _this.thick * 2;
-					var db = dy + dh;
-					if(highlight == i) {
-						g.set_opacity(0.1);
-						g.set_color(-65536);
-					} else {
-						g.set_opacity(0.05);
-					}
-					g.fillRect(dx1,dy,dw1,dh);
-					if(highlight == i) {
-						g.set_color(-1);
-					}
-					g.set_opacity(1.);
-					tmp[i] = { x : dx1, y : dy, r : dr, b : db};
-				}
 				var _this1 = this.common;
 				cx += (_this1.dia + _this1.gapH) * 1.8;
 				break;
 			case true:
-				var _this2 = this.common;
-				g.drawLine(cx,cy + _this2.thick / 2,cx + wid,cy + _this2.thick / 2,_this2.thick);
 				var flip1 = slidee.flip;
 				if(flip1 == null) {
 					slidee.flip = false;
@@ -1536,50 +1871,50 @@ fullK_components_SliderBars.prototype = {
 				} else {
 					dValue1 = max1 - value1 - min1;
 				}
-				var dx2 = dValue1 * dif1;
-				if(dx2 < 0.1) {
-					dx2 = 0.;
+				var delta1 = dValue1 * dif1;
+				if(delta1 < 0.1) {
+					delta1 = 0.;
 				}
-				if(dx2 > wid - 0.1) {
-					dx2 = wid;
+				if(delta1 > wid - 0.1) {
+					delta1 = wid;
 				}
-				pos = cx + dx2;
+				pos = cx + delta1;
+				if(this.enabled) {
+					var tmp1 = this.hitArea;
+					var _this2 = this.common;
+					var dx1 = cx - _this2.radiusOutline - _this2.thick;
+					var dy1 = cy - _this2.radiusOutline - _this2.thick;
+					var dw3 = wid + this.common.dia + _this2.thick * 2;
+					var dr1 = dx1 + dw3;
+					var dh1 = _this2.dia + _this2.thick * 2;
+					var db1 = dy1 + dh1;
+					if(this.highlight == i) {
+						g.set_color(_this2.lowRed);
+						g.fillRect(dx1,dy1,dw3,dh1);
+						g.set_color(_this2.lowWhite);
+						g.drawRect(dx1,dy1,dw3,dh1,_this2.thick);
+					} else {
+						g.set_color(_this2.lowWhite);
+						g.fillRect(dx1,dy1,dw3,dh1);
+					}
+					g.set_color(-1);
+					tmp1[i] = { x : dx1, y : dy1, r : dr1, b : db1};
+				}
+				var _this3 = this.common;
+				g.drawLine(cx,cy + _this3.thick / 2,cx + wid,cy + _this3.thick / 2,_this3.thick);
 				if(slidee.clampInteger) {
 					g.drawString(Std.string(Math.round(slidee.value)),pos + this.common.radiusOutline,cy - this.common.gapH - this.common.radiusInner);
 				} else {
 					g.drawString(Std.string(Math.round(slidee.value * 100) / 100),pos + this.common.radiusOutline,cy - this.common.gapH - this.common.radiusInner);
 				}
 				this.renderSlideeX(g,pos,cy);
-				if(this.enabled) {
-					var tmp1 = this.hitArea;
-					var _this3 = this.common;
-					var highlight1 = this.highlight;
-					var dx3 = cx - _this3.radiusOutline - _this3.thick;
-					var dy1 = cy - _this3.radiusOutline - _this3.thick;
-					var dw3 = wid + this.common.dia + _this3.thick * 2;
-					var dr1 = dx3 + dw3;
-					var dh1 = _this3.dia + _this3.thick * 2;
-					var db1 = dy1 + dh1;
-					if(highlight1 == i) {
-						g.set_opacity(0.1);
-						g.set_color(-65536);
-					} else {
-						g.set_opacity(0.05);
-					}
-					g.fillRect(dx3,dy1,dw3,dh1);
-					if(highlight1 == i) {
-						g.set_color(-1);
-					}
-					g.set_opacity(1.);
-					tmp1[i] = { x : dx3, y : dy1, r : dr1, b : db1};
-				}
 				var _this4 = this.common;
 				cy += _this4.dia + _this4.gapH;
 				break;
 			}
 		}
 	}
-	,slideePos: function(slidee,cx,width) {
+	,slideePos: function(slidee,startPos,width) {
 		var flip = slidee.flip;
 		if(flip == null) {
 			slidee.flip = false;
@@ -1604,14 +1939,14 @@ fullK_components_SliderBars.prototype = {
 		} else {
 			dValue = max - value - min;
 		}
-		var dx = dValue * dif;
-		if(dx < 0.1) {
-			dx = 0.;
+		var delta = dValue * dif;
+		if(delta < 0.1) {
+			delta = 0.;
 		}
-		if(dx > width - 0.1) {
-			dx = width;
+		if(delta > width - 0.1) {
+			delta = width;
 		}
-		return cx + dx;
+		return startPos + delta;
 	}
 	,renderSlideeX: function(g,cx,cy) {
 		switch(this.optionType) {
@@ -1812,14 +2147,13 @@ fullK_components_SliderBars.prototype = {
 	}
 	,__class__: fullK_components_SliderBars
 };
-var fullK_components_ViewOptions = function(x_,y_) {
+var fullK_components_ViewOptions = function(x_,y_,common_) {
 	if(y_ == null) {
 		y_ = 100;
 	}
 	if(x_ == null) {
 		x_ = 100;
 	}
-	this.common = new fullK_components_Common();
 	this.hitArea = [];
 	this.gapH = 16.;
 	this.gapW = 20.;
@@ -1834,6 +2168,7 @@ var fullK_components_ViewOptions = function(x_,y_) {
 	this.visible = true;
 	this.x = x_;
 	this.y = y_;
+	this.common = common_;
 };
 $hxClasses["fullK.components.ViewOptions"] = fullK_components_ViewOptions;
 fullK_components_ViewOptions.__name__ = true;
@@ -1879,27 +2214,24 @@ fullK_components_ViewOptions.prototype = {
 			if(this.enabled) {
 				var tmp = this.hitArea;
 				var _this = this.common;
-				var highlight = this.highlight;
 				var dx = cx - _this.radiusOutline - _this.thick;
 				var dy = cy - _this.radiusOutline - _this.thick;
 				var dw = fontWid + this.gapW + dia * 2 + _this.thick * 2;
 				var dr = dx + dw;
 				var dh = _this.dia + _this.thick * 2;
 				var db = dy + dh;
-				if(highlight == i) {
-					g.set_opacity(0.1);
-					g.set_color(-65536);
+				if(this.highlight == i) {
+					g.set_color(_this.lowRed);
+					g.fillRect(dx,dy,dw,dh);
+					g.set_color(_this.lowWhite);
+					g.drawRect(dx,dy,dw,dh,_this.thick);
 				} else {
-					g.set_opacity(0.05);
+					g.set_color(_this.lowWhite);
+					g.fillRect(dx,dy,dw,dh);
 				}
-				g.fillRect(dx,dy,dw,dh);
-				if(highlight == i) {
-					g.set_color(-1);
-				}
-				g.set_opacity(1.);
+				g.set_color(-1);
 				tmp[i] = { x : dx, y : dy, r : dr, b : db};
 			}
-			g.set_opacity(1.);
 			switch(this.optionType) {
 			case 0:
 				var _this1 = this.common;

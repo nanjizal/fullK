@@ -6,6 +6,7 @@ import kha.Font;
 import kha.Color;
 import kha.graphics2.Graphics;
 import kha.input.Mouse;
+import fullK.components.ColorHelper;
 import kha.graphics2.GraphicsExtension;
 using kha.graphics2.GraphicsExtension;
 typedef HitArea = {
@@ -34,10 +35,14 @@ class Common {
     public var gapH = 16.;
     public var dia: Float;
     public var diaInner: Float;
+    public var lowRed: Int;
+    public var lowWhite: Int;
     public function new(){
         font = Assets.fonts.OpenSans_Regular;
         dia = radiusOutline*2;
         diaInner = radiusInner*2;
+        lowRed = ColorHelper.percentRedSoft( 15, 10 );
+        lowWhite = ColorHelper.percentWhite( 15 );
     }
     inline public
     function circleOut( g: Graphics, cx: Float, cy: Float ){
@@ -120,14 +125,15 @@ class Common {
         var dh = dia + thick*2;
         var db = dy + dh;
         if( highlight == i ) { 
-            g.opacity = 0.1;
-            g.color   = Color.Red;
+            g.color = lowRed;
+            g.fillRect( dx, dy, dw, dh );
+            g.color = lowWhite;
+            g.drawRect( dx, dy, dw, dh, thick );
         } else {
-            g.opacity = 0.05;
+            g.color = lowWhite;
+            g.fillRect( dx, dy, dw, dh );
         }
-        g.fillRect( dx, dy, dw, dh );
-        if( highlight == i ) g.color = Color.White;
-        g.opacity = 1.;
+        g.color = Color.White;
         return {  x: dx, y: dy, r: dr , b: db };
     }
     inline public
@@ -142,14 +148,15 @@ class Common {
         var dh = wid + thick*2;
         var db = dy + dh;
         if( highlight == i ) { 
-            g.opacity = 0.1;
-            g.color   = Color.Red;
+            g.color = lowRed;
+            g.fillRect( dx, dy, dw, dh );
+            g.color = lowWhite;
+            g.drawRect( dx, dy, dw, dh, thick );
         } else {
-            g.opacity = 0.05;
+            g.color = lowWhite;
+            g.fillRect( dx, dy, dw, dh );
         }
-        g.fillRect( dx, dy, dw, dh );
-        if( highlight == i ) g.color = Color.White;
-        g.opacity = 1.;
+        g.color = Color.White;
         return {  x: dx, y: dy, r: dr , b: db };
     }
     

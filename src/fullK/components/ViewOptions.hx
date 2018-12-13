@@ -27,10 +27,11 @@ class ViewOptions {
     public var labels: Array<String>;
     var hitArea = new Array<HitArea>();
     public var state: Array<Bool>;
-    var common: Common = new Common();
-    public function new( x_: Float = 100, y_: Float = 100){
+    var common: Common;
+    public function new( x_: Float = 100, y_: Float = 100, common_: Common ){
         x = x_;
         y = y_;
+        common = common_;
     }
     public function renderView( g: Graphics ){
         if( visible == false ) return;
@@ -52,7 +53,6 @@ class ViewOptions {
             if( enabled ){
                 hitArea[ i ] = common.hitAreaRender( i, highlight, g, cx, cy, fontWid + gapW+ dia*2 );
             }
-            g.opacity = 1.;
             // graphics
             drawOuter( g, cx, cy );
             if( state[ i ] ) drawInner( g, cx, cy );

@@ -9,14 +9,19 @@ import kha.Assets;
 import kha.math.FastMatrix3;
 import fullK.components.DragGraphic;
 class MainApp extends fullK.MainTemplate{ public static function main() MainTemplate.main();
-    var options = new ViewOptions( 300, 100 );
-    var slidersHorizontal = new SliderBars( 100, 200 );
-    var slidersVertical   = new SliderBars( 100, 350 );
-    var dragImage: DragGraphic;
-    var dragText:  DragGraphic;
+    var common:             Common;
+    var options:            ViewOptions;
+    var slidersHorizontal:  SliderBars;
+    var slidersVertical:    SliderBars;
+    var dragImage:          DragGraphic;
+    var dragText:           DragGraphic;
     override public inline
     function setup(){
         trace('setup');
+        common = new Common();
+        options = new ViewOptions( 300, 100, common );
+        slidersHorizontal = new SliderBars( 100, 200, common );
+        slidersVertical   = new SliderBars( 100, 350, common );
         setupDragImage();
         setupDragText();
         frameStatGreySkin();
@@ -24,7 +29,7 @@ class MainApp extends fullK.MainTemplate{ public static function main() MainTemp
         setupSliderBars();
     }
     function setupDragImage(){
-        dragImage = new DragGraphic(); 
+        dragImage = new DragGraphic( common ); 
         dragImage.graphicType = IMAGE;
         dragImage.image = Assets.images.khaIcon;
         dragImage.x = 500.;
@@ -32,7 +37,7 @@ class MainApp extends fullK.MainTemplate{ public static function main() MainTemp
         dragImage.scale = 0.3;
     }
     function setupDragText(){
-        dragText = new DragGraphic();
+        dragText = new DragGraphic( common );
         dragText.graphicType = TEXT;
         dragText.label = 'draggable text';
         dragText.x = 350;
@@ -160,13 +165,13 @@ class MainApp extends fullK.MainTemplate{ public static function main() MainTemp
     }
     override public inline
     function render2D( g: Graphics ){
+        g.opacity = 1.;
         g.drawRect( 100, 100, 100, 30 );
         g.drawString( 'hello world', 105, 105 );
         options.renderView( g );
         slidersHorizontal.renderView( g );
         slidersVertical.renderView( g );
         dragImage.renderView( g );
-        g.opacity = 1.;
         g.drawString( 'draggable image', dragImage.x, dragImage.y - 25 );
         dragText.renderView( g );
     }

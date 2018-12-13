@@ -23,7 +23,7 @@ class DragGraphic {
     var area: HitArea;
     public var image: Image;
     public var label: String;
-    var common: Common = new Common();
+    var common: Common;
     public var scale( default, set ): Float;
     public function set_scale( scale_: Float ): Float {
         scale = scale_;
@@ -45,7 +45,9 @@ class DragGraphic {
         }
     }
     public
-    function new(){}
+    function new( common_: Common ){
+        common = common_;
+    }
     public inline
     function updateArea(){
         area = {  x: x - spaceW, y: y, r: x + width, b: y + height };
@@ -62,20 +64,22 @@ class DragGraphic {
         g.transformation = FastMatrix3.identity().multmat( FastMatrix3.scale( scale, scale ) );
         switch( graphicType ){
             case IMAGE:
-                g.drawImage( image, x/scale, y/scale );
-                g.opacity = 0.2;
                 if( highlight != -1 ) {
-                    g.color = Color.Red;
+                    g.color = common.lowRed;
+                    g.fillRect( x/scale, y/scale, width/scale, height/scale );
+                    g.color = common.lowWhite;
                     g.drawRect( x/scale, y/scale, width/scale, height/scale, common.thick/scale );
                     g.color = Color.White;
-                    g.opacity = 1.;
                 }
+                g.drawImage( image, x/scale, y/scale );
             case TEXT:
-                g.opacity = 0.05;
-                if( highlight != -1 ) g.color = Color.Red;
+                if( highlight != -1 ) {
+                    g.color = common.lowRed;
+                } else {
+                    g.color = common.lowWhite;
+                }
                 g.fillRect( Math.round( x/scale - spaceW ), Math.round( y/scale), Math.round( width/scale ), Math.round( height/scale ) );
-                if( highlight != -1 ) g.color = Color.White;
-                g.opacity = 1.;
+                g.color = Color.White;
                 g.drawString( label, Math.round( x/scale ), Math.round( y/scale ) );
             case NONE:
                 //
