@@ -506,7 +506,7 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 			}
 		};
 		this.options.optionOver = function(id1) {
-			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 145, className : "MainApp", methodName : "setupOptions"});
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 146, className : "MainApp", methodName : "setupOptions"});
 		};
 	}
 	,setupSliderBars: function() {
@@ -515,10 +515,10 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		this.slidersHorizontal.slidees = [{ min : 300., max : 2000., value : 300., flip : false},{ min : 300., max : 1024., value : 370., clampInteger : true},{ min : 300., max : 600., value : 400., flip : false}];
 		this.slidersHorizontal.widths = [150,150,150];
 		this.slidersHorizontal.sliderOver = function(id) {
-			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 154, className : "MainApp", methodName : "setupSliderBars"});
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 155, className : "MainApp", methodName : "setupSliderBars"});
 		};
 		this.slidersHorizontal.sliderChange = function(id1,value) {
-			haxe_Log.trace("slidee Horizontal " + id1 + ": " + value,{ fileName : "MainApp.hx", lineNumber : 156, className : "MainApp", methodName : "setupSliderBars"});
+			haxe_Log.trace("slidee Horizontal " + id1 + ": " + value,{ fileName : "MainApp.hx", lineNumber : 157, className : "MainApp", methodName : "setupSliderBars"});
 			switch(id1) {
 			case 0:
 				_gthis.dragText.x = value;
@@ -535,10 +535,10 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		this.slidersVertical.slidees = [{ min : 300., max : 600., value : 370., clampInteger : true},{ min : 0.1, max : 1.19, value : 0.3, flip : false},{ min : 0.5, max : 3.5, value : 0.3, flip : false}];
 		this.slidersVertical.widths = [150,150,150];
 		this.slidersVertical.sliderOver = function(id2) {
-			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 173, className : "MainApp", methodName : "setupSliderBars"});
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 174, className : "MainApp", methodName : "setupSliderBars"});
 		};
 		this.slidersVertical.sliderChange = function(id3,value1) {
-			haxe_Log.trace("slidee Vertical" + id3 + ": " + value1,{ fileName : "MainApp.hx", lineNumber : 175, className : "MainApp", methodName : "setupSliderBars"});
+			haxe_Log.trace("slidee Vertical" + id3 + ": " + value1,{ fileName : "MainApp.hx", lineNumber : 176, className : "MainApp", methodName : "setupSliderBars"});
 			switch(id3) {
 			case 0:
 				_gthis.dragImage.y = value1;
@@ -2954,7 +2954,6 @@ var fullK_components_RGBsliders = function(x_,y_,wid) {
 		x_ = 100;
 	}
 	this.allSlides = [];
-	this.orientation = true;
 	var _gthis = this;
 	this.x = x_;
 	this.y = y_;
@@ -2979,12 +2978,13 @@ var fullK_components_RGBsliders = function(x_,y_,wid) {
 		slider.slidees = [{ min : 0., max : 100., value : 100., flip : false, clampInteger : true}];
 		slider.widths = [wid];
 		slider.sliderOver = function(id) {
-			haxe_Log.trace("over",{ fileName : "fullK/components/RGBsliders.hx", lineNumber : 39, className : "fullK.components.RGBsliders", methodName : "new"});
+			haxe_Log.trace("over",{ fileName : "fullK/components/RGBsliders.hx", lineNumber : 53, className : "fullK.components.RGBsliders", methodName : "new"});
 		};
 		slider.sliderChange = function(id1,value) {
 			_gthis.colorSet();
 		};
 	}
+	this.set_orientation(true);
 };
 $hxClasses["fullK.components.RGBsliders"] = fullK_components_RGBsliders;
 fullK_components_RGBsliders.__name__ = true;
@@ -2998,6 +2998,25 @@ fullK_components_RGBsliders.prototype = {
 	,x: null
 	,y: null
 	,orientation: null
+	,set_orientation: function(val) {
+		this.orientation = val;
+		var _g = 0;
+		var _g1 = this.allSlides;
+		while(_g < _g1.length) {
+			var slider = _g1[_g];
+			++_g;
+			slider.orientation = val;
+			switch(this.orientation) {
+			case false:
+				slider.slidees[0].flip = true;
+				break;
+			case true:
+				slider.slidees[0].flip = false;
+				break;
+			}
+		}
+		return val;
+	}
 	,sliderOver: null
 	,sliderChange: null
 	,allSlides: null
@@ -3046,11 +3065,11 @@ fullK_components_RGBsliders.prototype = {
 		switch(this.orientation) {
 		case false:
 			var _this = this.rCommon;
-			x2 += (_this.dia + _this.gapH) * 1.8;
+			x2 += (_this.dia + _this.gapH) * 1.8 * 0.65;
 			this.gSlider.x = x2;
 			this.gSlider.y = y2;
 			var _this1 = this.bCommon;
-			x2 += (_this1.dia + _this1.gapH) * 1.8;
+			x2 += (_this1.dia + _this1.gapH) * 1.8 * 0.65;
 			this.bSlider.x = x2;
 			this.bSlider.y = y2;
 			break;
@@ -3066,11 +3085,10 @@ fullK_components_RGBsliders.prototype = {
 			break;
 		}
 		var _g1 = 0;
-		var _g2 = this.allSlides;
-		while(_g1 < _g2.length) {
-			var slider = _g2[_g1];
-			++_g1;
-			slider.renderView(g);
+		var _g2 = this.allSlides.length;
+		while(_g1 < _g2) {
+			var i = _g1++;
+			this.allSlides[2 - i].renderView(g);
 		}
 	}
 	,__class__: fullK_components_RGBsliders

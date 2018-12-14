@@ -30,6 +30,7 @@ class MainApp extends fullK.MainTemplate{ public static function main() MainTemp
         slidersVertical   = new SliderBars( 100, 350, common );
         rgb = new RGBsliders( 500, 100, 100 );
         rgb.sliderChange = commonColor;
+        // rgb.orientation = VERTICAL;
         rgbOver = new RGBsliders( 500, 240, 100 );
         rgbOver.values( 15, 10, 10 );
         rgbOver.sliderChange = overColor;

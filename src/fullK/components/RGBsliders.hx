@@ -13,7 +13,21 @@ class RGBsliders{
     var bCommon: Common;
     public var x: Float;
     public var y: Float;
-    public var orientation = HORIZONTAL;
+    public var orientation( default, set ): Orientation;
+    public function set_orientation( val: Orientation ){
+        orientation = val;
+        for( slider in allSlides ){
+            slider.orientation = val;
+            switch( orientation ){
+                case HORIZONTAL:
+                    slider.slidees[0].flip = false;
+                
+                case VERTICAL:
+                    slider.slidees[0].flip = true;
+            }
+        }
+        return val;
+    } 
     public var sliderOver: Int -> Void;
     public var sliderChange: Int -> Void;
     var allSlides = new Array<SliderBars>();
@@ -39,6 +53,7 @@ class RGBsliders{
             slider.sliderOver   = function( id: Int ){ trace('over'); }
             slider.sliderChange = function( id: Int, value: Float ){ colorSet(); };
         }
+        orientation = HORIZONTAL;
     }
     public function values( r: Int, g: Int, b: Int ){
         rSlider.slidees[0].value = r;
@@ -78,13 +93,14 @@ class RGBsliders{
                 bSlider.x = x2;
                 bSlider.y = y2;
             case VERTICAL:
-                x2 += rCommon.dx();
+                x2 += rCommon.dx()*0.65;
                 gSlider.x = x2;
                 gSlider.y = y2;
-                x2 += bCommon.dx();
+                x2 += bCommon.dx()*0.65;
                 bSlider.x = x2;
                 bSlider.y = y2;
         }
-        for( slider in allSlides ) slider.renderView( g );
+        // reverse render so the number is always on top.
+        for( i in 0...allSlides.length ) allSlides[ 2 - i ].renderView( g );
     }
 }
