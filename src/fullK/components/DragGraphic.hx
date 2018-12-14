@@ -65,21 +65,23 @@ class DragGraphic {
         switch( graphicType ){
             case IMAGE:
                 if( highlight != -1 ) {
-                    g.color = common.lowRed;
+                    g.color = common.overColor;
                     g.fillRect( x/scale, y/scale, width/scale, height/scale );
-                    g.color = common.lowWhite;
+                    g.color = common.outColor;
                     g.drawRect( x/scale, y/scale, width/scale, height/scale, common.thick/scale );
-                    g.color = Color.White;
+                    g.color = common.mainColor;
                 }
+                g.color = Color.White;
                 g.drawImage( image, x/scale, y/scale );
+                g.color = common.mainColor;
             case TEXT:
                 if( highlight != -1 ) {
-                    g.color = common.lowRed;
+                    g.color = common.overColor;
                 } else {
-                    g.color = common.lowWhite;
+                    g.color = common.outColor;
                 }
                 g.fillRect( Math.round( x/scale - spaceW ), Math.round( y/scale), Math.round( width/scale ), Math.round( height/scale ) );
-                g.color = Color.White;
+                g.color = common.mainColor;
                 g.drawString( label, Math.round( x/scale ), Math.round( y/scale ) );
             case NONE:
                 //

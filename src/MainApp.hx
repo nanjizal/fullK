@@ -5,28 +5,89 @@ import fullK.components.ViewOptions;
 import fullK.components.SliderBars;
 import fullK.components.Common;
 import kha.Image;
+import kha.Color;
 import kha.Assets;
 import kha.math.FastMatrix3;
 import fullK.components.DragGraphic;
+import fullK.components.ColorHelper;
+import fullK.components.RGBsliders;
+
 class MainApp extends fullK.MainTemplate{ public static function main() MainTemplate.main();
     var common:             Common;
     var options:            ViewOptions;
     var slidersHorizontal:  SliderBars;
+    var rgb:                RGBsliders;
+    var rgbOver:            RGBsliders;
     var slidersVertical:    SliderBars;
     var dragImage:          DragGraphic;
     var dragText:           DragGraphic;
     override public inline
     function setup(){
-        trace('setup');
         common = new Common();
+        //common.overColorSetup( MagentaOver );
         options = new ViewOptions( 300, 100, common );
         slidersHorizontal = new SliderBars( 100, 200, common );
         slidersVertical   = new SliderBars( 100, 350, common );
+        rgb = new RGBsliders( 500, 100, 100 );
+        rgb.sliderChange = commonColor;
+        rgbOver = new RGBsliders( 500, 240, 100 );
+        rgbOver.values( 15, 10, 10 );
+        rgbOver.sliderChange = overColor;
+        
         setupDragImage();
         setupDragText();
         frameStatGreySkin();
         setupOptions();
         setupSliderBars();
+        setupRenderViews();
+        setupRollOvers();
+        setupDrags();
+        setupDownCheck();
+        setupUpCheck();
+    }
+    function overColor( val: Int ){
+        common.overColor = val;
+    }
+    function commonColor( val: Int ){
+        common.mainColor = val;
+    }
+    function setupRenderViews(){
+        renderViews = [ renderHelloWorld
+                      , options.renderView
+                      , slidersHorizontal.renderView
+                      , slidersVertical.renderView
+                      , rgb.renderView
+                      , rgbOver.renderView
+                      , renderImageTitle
+                      , renderMainColorTitle
+                      , renderHighlightTitle
+                      , dragImage.renderView
+                      , dragText.renderView ];
+    }
+    function setupRollOvers(){
+        rollOvers = [ options.hitOver
+                    , slidersHorizontal.hitOver
+                    , slidersVertical.hitOver
+                    , rgb.hitOver
+                    , rgbOver.hitOver
+                    , dragImage.hitOver
+                    , dragText.hitOver ];
+    }
+    function setupUpCheck(){
+        upChecks = [ slidersHorizontal.upCheck
+                   , slidersVertical.upCheck
+                   , rgb.upCheck
+                   , rgbOver.upCheck ];
+    }
+    function setupDownCheck(){
+        downChecks = [ options.hitCheck
+                     , slidersHorizontal.hitCheck
+                     , slidersVertical.hitCheck
+                     , rgb.hitCheck
+                     , rgbOver.hitCheck ];
+    }
+    function setupDrags(){
+        drags = [ dragImage, dragText ];
     }
     function setupDragImage(){
         dragImage = new DragGraphic( common ); 
@@ -122,57 +183,54 @@ class MainApp extends fullK.MainTemplate{ public static function main() MainTemp
             }
         }
     }
-    override public
+    public override
     function over(){
-        options.hitOver( interaction.mouseX, interaction.mouseY );
-        slidersHorizontal.hitOver( interaction.mouseX, interaction.mouseY );
-        slidersVertical.hitOver( interaction.mouseX, interaction.mouseY );
-        dragImage.hitOver( interaction.mouseX, interaction.mouseY );
-        dragText.hitOver( interaction.mouseX, interaction.mouseY );
+        super.over();
     }
-    override public
+    public override 
     function move(){
-        options.hitOver( interaction.mouseX, interaction.mouseY );
-        slidersHorizontal.hitOver( interaction.mouseX, interaction.mouseY );
-        slidersVertical.hitOver( interaction.mouseX, interaction.mouseY );
-        dragImage.hitOver( interaction.mouseX, interaction.mouseY );
-        dragText.hitOver( interaction.mouseX, interaction.mouseY );
+        super.move();
     }
     override public
     function down(){
+        super.down();
         var mx = interaction.mouseX;
         var my = interaction.mouseY;
-        var imgHit = dragImage.hitCheck( mx, my );
-        var txtHit = dragText.hitCheck( mx, my );
-        if( imgHit ) interaction.dragItem = cast dragImage;
-        if( txtHit ) interaction.dragItem = cast dragText;
-        if( imgHit || txtHit ){
+        if( dragging ){
             options.enabled = false;
             slidersHorizontal.enabled = false;
             slidersVertical.enabled = false;
-        }        
-        options.hitCheck( mx, my );
-        slidersHorizontal.hitCheck( mx, my );
-        slidersVertical.hitCheck( mx, my );
+        }
     }
     override public
     function up(){
         options.enabled = true;
         slidersHorizontal.enabled = true;
         slidersVertical.enabled = true;
-        slidersHorizontal.upCheck( interaction.mouseX, interaction.mouseY );
-        slidersVertical.upCheck( interaction.mouseX, interaction.mouseY );
+        super.up();
     }
-    override public inline
-    function render2D( g: Graphics ){
-        g.opacity = 1.;
+    inline
+    public function renderImageTitle( g: Graphics ){
+        g.color = common.mainColor;
+        g.drawString( 'draggable image', dragImage.x, dragImage.y - 27 );
+    }
+    inline
+    public function renderMainColorTitle( g: Graphics ){
+        g.color = common.mainColor;
+        g.drawString( 'colour', rgb.x, rgb.y - 40 );
+    }
+    inline function renderHighlightTitle( g: Graphics ){
+        g.color = common.mainColor;
+        g.drawString( 'rollover color', rgbOver.x, rgbOver.y - 40 );
+    }
+    inline
+    public function renderHelloWorld( g: Graphics ){
+        g.color = common.mainColor;
         g.drawRect( 100, 100, 100, 30 );
         g.drawString( 'hello world', 105, 105 );
-        options.renderView( g );
-        slidersHorizontal.renderView( g );
-        slidersVertical.renderView( g );
-        dragImage.renderView( g );
-        g.drawString( 'draggable image', dragImage.x, dragImage.y - 25 );
-        dragText.renderView( g );
+    }
+    override public
+    function render2D( g: Graphics ){
+        super.render2D( g );
     }
 }

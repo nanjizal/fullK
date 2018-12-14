@@ -26,8 +26,8 @@ class SliderBars {
     var dragging = false;
     public var optionType = SQUARE;
     var highlight: Int = -1;
-    var x = 100.;
-    var y = 100.;
+    public var x = 100.;
+    public var y = 100.;
     public var gapH = 16.;
     var common: Common;
     public var widths: Array<Int>;
@@ -84,8 +84,7 @@ class SliderBars {
                             , cx + common.gapH - 2*common.radiusInner, pos - 2.2*common.radiusOutline );
                     }
                     renderSlideeY( g, cx, pos );
-                    
-                    cx += common.dy()*1.8;
+                    cx += common.dx();
             }
         }
     }

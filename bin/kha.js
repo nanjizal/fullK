@@ -105,6 +105,11 @@ Lambda.array = function(it) {
 	return a;
 };
 var fullK_MainTemplate = function() {
+	this.upChecks = [];
+	this.downChecks = [];
+	this.drags = [];
+	this.rollOvers = [];
+	this.renderViews = [];
 	this.backgroundColor = -14671840;
 	kha_Assets.loadEverything($bind(this,this.loadAll));
 };
@@ -121,23 +126,73 @@ fullK_MainTemplate.prototype = {
 	,interaction: null
 	,font: null
 	,backgroundColor: null
+	,dragging: null
+	,renderViews: null
+	,rollOvers: null
+	,drags: null
+	,downChecks: null
+	,upChecks: null
 	,setup: function() {
-		haxe_Log.trace("override setup",{ fileName : "fullK/MainTemplate.hx", lineNumber : 39, className : "fullK.MainTemplate", methodName : "setup"});
+		haxe_Log.trace("override setup",{ fileName : "fullK/MainTemplate.hx", lineNumber : 45, className : "fullK.MainTemplate", methodName : "setup"});
 	}
-	,render2D: function(g2) {
-		haxe_Log.trace("override render2D",{ fileName : "fullK/MainTemplate.hx", lineNumber : 43, className : "fullK.MainTemplate", methodName : "render2D"});
+	,render2D: function(g) {
+		var _g = 0;
+		var _g1 = this.renderViews.length;
+		while(_g < _g1) {
+			var i = _g++;
+			this.renderViews[i](g);
+		}
 	}
 	,over: function() {
-		haxe_Log.trace("override over",{ fileName : "fullK/MainTemplate.hx", lineNumber : 47, className : "fullK.MainTemplate", methodName : "over"});
-	}
-	,down: function() {
-		haxe_Log.trace("override down",{ fileName : "fullK/MainTemplate.hx", lineNumber : 51, className : "fullK.MainTemplate", methodName : "down"});
-	}
-	,up: function() {
-		haxe_Log.trace("override up",{ fileName : "fullK/MainTemplate.hx", lineNumber : 55, className : "fullK.MainTemplate", methodName : "up"});
+		var _g = 0;
+		var _g1 = this.rollOvers.length;
+		while(_g < _g1) {
+			var i = _g++;
+			this.rollOvers[i](this.interaction.mouseX,this.interaction.mouseY);
+		}
 	}
 	,move: function() {
-		haxe_Log.trace("override move",{ fileName : "fullK/MainTemplate.hx", lineNumber : 59, className : "fullK.MainTemplate", methodName : "move"});
+		var _g = 0;
+		var _g1 = this.rollOvers.length;
+		while(_g < _g1) {
+			var i = _g++;
+			this.rollOvers[i](this.interaction.mouseX,this.interaction.mouseY);
+		}
+	}
+	,down: function() {
+		var mx = this.interaction.mouseX;
+		var my = this.interaction.mouseY;
+		var drag;
+		var _g = 0;
+		var _g1 = this.drags.length;
+		while(_g < _g1) {
+			var i = _g++;
+			drag = this.drags[i];
+			drag.area = { x : drag.x - drag.spaceW, y : drag.y, r : drag.x + drag.width, b : drag.y + drag.height};
+			var hit = mx > drag.area.x && mx < drag.area.r && my > drag.area.y && my < drag.area.b;
+			if(hit) {
+				this.interaction.set_dragItem(drag);
+				this.renderViews = this.toLast(this.renderViews,$bind(drag,drag.renderView));
+				this.dragging = true;
+			}
+		}
+		var _g2 = 0;
+		var _g3 = this.downChecks.length;
+		while(_g2 < _g3) {
+			var i1 = _g2++;
+			this.downChecks[i1](mx,my);
+		}
+	}
+	,up: function() {
+		var mx = this.interaction.mouseX;
+		var my = this.interaction.mouseY;
+		this.dragging = false;
+		var _g = 0;
+		var _g1 = this.upChecks.length;
+		while(_g < _g1) {
+			var i = _g++;
+			this.upChecks[i](mx,my);
+		}
 	}
 	,loadAll: function() {
 		window.dispatchEvent(new Event("resize"));
@@ -261,6 +316,22 @@ fullK_MainTemplate.prototype = {
 			g2.end();
 		});
 	}
+	,toLast: function(arr,top) {
+		var temp = [];
+		var j = 0;
+		var t;
+		var _g = 0;
+		var _g1 = arr.length;
+		while(_g < _g1) {
+			var i = _g++;
+			t = arr[i];
+			if(t != top) {
+				temp[j++] = t;
+			}
+		}
+		temp[j++] = top;
+		return temp;
+	}
 	,render: function(framebuffer) {
 		var g2 = framebuffer.get_g2();
 		g2.begin(null,kha__$Color_Color_$Impl_$._new(this.backgroundColor));
@@ -326,20 +397,52 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 	common: null
 	,options: null
 	,slidersHorizontal: null
+	,rgb: null
+	,rgbOver: null
 	,slidersVertical: null
 	,dragImage: null
 	,dragText: null
 	,setup: function() {
-		haxe_Log.trace("setup",{ fileName : "MainApp.hx", lineNumber : 20, className : "MainApp", methodName : "setup"});
 		this.common = new fullK_components_Common();
 		this.options = new fullK_components_ViewOptions(300,100,this.common);
 		this.slidersHorizontal = new fullK_components_SliderBars(100,200,this.common);
 		this.slidersVertical = new fullK_components_SliderBars(100,350,this.common);
+		this.rgb = new fullK_components_RGBsliders(500,100,100);
+		this.rgb.sliderChange = $bind(this,this.commonColor);
+		this.rgbOver = new fullK_components_RGBsliders(500,240,100);
+		this.rgbOver.values(15,10,10);
+		this.rgbOver.sliderChange = $bind(this,this.overColor);
 		this.setupDragImage();
 		this.setupDragText();
 		this.frameStatGreySkin();
 		this.setupOptions();
 		this.setupSliderBars();
+		this.setupRenderViews();
+		this.setupRollOvers();
+		this.setupDrags();
+		this.setupDownCheck();
+		this.setupUpCheck();
+	}
+	,overColor: function(val) {
+		this.common.overColor = val;
+	}
+	,commonColor: function(val) {
+		this.common.mainColor = val;
+	}
+	,setupRenderViews: function() {
+		this.renderViews = [$bind(this,this.renderHelloWorld),($_=this.options,$bind($_,$_.renderView)),($_=this.slidersHorizontal,$bind($_,$_.renderView)),($_=this.slidersVertical,$bind($_,$_.renderView)),($_=this.rgb,$bind($_,$_.renderView)),($_=this.rgbOver,$bind($_,$_.renderView)),$bind(this,this.renderImageTitle),$bind(this,this.renderMainColorTitle),$bind(this,this.renderHighlightTitle),($_=this.dragImage,$bind($_,$_.renderView)),($_=this.dragText,$bind($_,$_.renderView))];
+	}
+	,setupRollOvers: function() {
+		this.rollOvers = [($_=this.options,$bind($_,$_.hitOver)),($_=this.slidersHorizontal,$bind($_,$_.hitOver)),($_=this.slidersVertical,$bind($_,$_.hitOver)),($_=this.rgb,$bind($_,$_.hitOver)),($_=this.rgbOver,$bind($_,$_.hitOver)),($_=this.dragImage,$bind($_,$_.hitOver)),($_=this.dragText,$bind($_,$_.hitOver))];
+	}
+	,setupUpCheck: function() {
+		this.upChecks = [($_=this.slidersHorizontal,$bind($_,$_.upCheck)),($_=this.slidersVertical,$bind($_,$_.upCheck)),($_=this.rgb,$bind($_,$_.upCheck)),($_=this.rgbOver,$bind($_,$_.upCheck))];
+	}
+	,setupDownCheck: function() {
+		this.downChecks = [($_=this.options,$bind($_,$_.hitCheck)),($_=this.slidersHorizontal,$bind($_,$_.hitCheck)),($_=this.slidersVertical,$bind($_,$_.hitCheck)),($_=this.rgb,$bind($_,$_.hitCheck)),($_=this.rgbOver,$bind($_,$_.hitCheck))];
+	}
+	,setupDrags: function() {
+		this.drags = [this.dragImage,this.dragText];
 	}
 	,setupDragImage: function() {
 		this.dragImage = new fullK_components_DragGraphic(this.common);
@@ -403,7 +506,7 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 			}
 		};
 		this.options.optionOver = function(id1) {
-			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 84, className : "MainApp", methodName : "setupOptions"});
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 145, className : "MainApp", methodName : "setupOptions"});
 		};
 	}
 	,setupSliderBars: function() {
@@ -412,10 +515,10 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		this.slidersHorizontal.slidees = [{ min : 300., max : 2000., value : 300., flip : false},{ min : 300., max : 1024., value : 370., clampInteger : true},{ min : 300., max : 600., value : 400., flip : false}];
 		this.slidersHorizontal.widths = [150,150,150];
 		this.slidersHorizontal.sliderOver = function(id) {
-			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 93, className : "MainApp", methodName : "setupSliderBars"});
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 154, className : "MainApp", methodName : "setupSliderBars"});
 		};
 		this.slidersHorizontal.sliderChange = function(id1,value) {
-			haxe_Log.trace("slidee Horizontal " + id1 + ": " + value,{ fileName : "MainApp.hx", lineNumber : 95, className : "MainApp", methodName : "setupSliderBars"});
+			haxe_Log.trace("slidee Horizontal " + id1 + ": " + value,{ fileName : "MainApp.hx", lineNumber : 156, className : "MainApp", methodName : "setupSliderBars"});
 			switch(id1) {
 			case 0:
 				_gthis.dragText.x = value;
@@ -432,10 +535,10 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		this.slidersVertical.slidees = [{ min : 300., max : 600., value : 370., clampInteger : true},{ min : 0.1, max : 1.19, value : 0.3, flip : false},{ min : 0.5, max : 3.5, value : 0.3, flip : false}];
 		this.slidersVertical.widths = [150,150,150];
 		this.slidersVertical.sliderOver = function(id2) {
-			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 112, className : "MainApp", methodName : "setupSliderBars"});
+			haxe_Log.trace("over",{ fileName : "MainApp.hx", lineNumber : 173, className : "MainApp", methodName : "setupSliderBars"});
 		};
 		this.slidersVertical.sliderChange = function(id3,value1) {
-			haxe_Log.trace("slidee Vertical" + id3 + ": " + value1,{ fileName : "MainApp.hx", lineNumber : 114, className : "MainApp", methodName : "setupSliderBars"});
+			haxe_Log.trace("slidee Vertical" + id3 + ": " + value1,{ fileName : "MainApp.hx", lineNumber : 175, className : "MainApp", methodName : "setupSliderBars"});
 			switch(id3) {
 			case 0:
 				_gthis.dragImage.y = value1;
@@ -450,194 +553,46 @@ MainApp.prototype = $extend(fullK_MainTemplate.prototype,{
 		};
 	}
 	,over: function() {
-		this.options.hitOver(this.interaction.mouseX,this.interaction.mouseY);
-		this.slidersHorizontal.hitOver(this.interaction.mouseX,this.interaction.mouseY);
-		this.slidersVertical.hitOver(this.interaction.mouseX,this.interaction.mouseY);
-		this.dragImage.hitOver(this.interaction.mouseX,this.interaction.mouseY);
-		this.dragText.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		fullK_MainTemplate.prototype.over.call(this);
 	}
 	,move: function() {
-		this.options.hitOver(this.interaction.mouseX,this.interaction.mouseY);
-		this.slidersHorizontal.hitOver(this.interaction.mouseX,this.interaction.mouseY);
-		this.slidersVertical.hitOver(this.interaction.mouseX,this.interaction.mouseY);
-		this.dragImage.hitOver(this.interaction.mouseX,this.interaction.mouseY);
-		this.dragText.hitOver(this.interaction.mouseX,this.interaction.mouseY);
+		fullK_MainTemplate.prototype.move.call(this);
 	}
 	,down: function() {
+		fullK_MainTemplate.prototype.down.call(this);
 		var mx = this.interaction.mouseX;
 		var my = this.interaction.mouseY;
-		var _this = this.dragImage;
-		_this.area = { x : _this.x - _this.spaceW, y : _this.y, r : _this.x + _this.width, b : _this.y + _this.height};
-		var imgHit = mx > _this.area.x && mx < _this.area.r && my > _this.area.y && my < _this.area.b;
-		var _this1 = this.dragText;
-		_this1.area = { x : _this1.x - _this1.spaceW, y : _this1.y, r : _this1.x + _this1.width, b : _this1.y + _this1.height};
-		var txtHit = mx > _this1.area.x && mx < _this1.area.r && my > _this1.area.y && my < _this1.area.b;
-		if(imgHit) {
-			this.interaction.set_dragItem(this.dragImage);
-		}
-		if(txtHit) {
-			this.interaction.set_dragItem(this.dragText);
-		}
-		if(imgHit || txtHit) {
+		if(this.dragging) {
 			this.options.enabled = false;
 			this.slidersHorizontal.enabled = false;
 			this.slidersVertical.enabled = false;
 		}
-		this.options.hitCheck(mx,my);
-		this.slidersHorizontal.hitCheck(mx,my);
-		this.slidersVertical.hitCheck(mx,my);
 	}
 	,up: function() {
 		this.options.enabled = true;
 		this.slidersHorizontal.enabled = true;
 		this.slidersVertical.enabled = true;
-		this.slidersHorizontal.upCheck(this.interaction.mouseX,this.interaction.mouseY);
-		this.slidersVertical.upCheck(this.interaction.mouseX,this.interaction.mouseY);
+		fullK_MainTemplate.prototype.up.call(this);
 	}
-	,render2D: function(g) {
-		g.set_opacity(1.);
+	,renderImageTitle: function(g) {
+		g.set_color(this.common.mainColor);
+		g.drawString("draggable image",this.dragImage.x,this.dragImage.y - 27);
+	}
+	,renderMainColorTitle: function(g) {
+		g.set_color(this.common.mainColor);
+		g.drawString("colour",this.rgb.x,this.rgb.y - 40);
+	}
+	,renderHighlightTitle: function(g) {
+		g.set_color(this.common.mainColor);
+		g.drawString("rollover color",this.rgbOver.x,this.rgbOver.y - 40);
+	}
+	,renderHelloWorld: function(g) {
+		g.set_color(this.common.mainColor);
 		g.drawRect(100,100,100,30);
 		g.drawString("hello world",105,105);
-		this.options.renderView(g);
-		this.slidersHorizontal.renderView(g);
-		this.slidersVertical.renderView(g);
-		var _this = this.dragImage;
-		var _this__00 = 1;
-		var _this__10 = 0;
-		var _this__20 = 0;
-		var _this__01 = 0;
-		var _this__11 = 1;
-		var _this__21 = 0;
-		var _this__02 = 0;
-		var _this__12 = 0;
-		var _this__22 = 1;
-		var m__00 = _this.scale;
-		var m__10 = 0;
-		var m__20 = 0;
-		var m__01 = 0;
-		var m__11 = _this.scale;
-		var m__21 = 0;
-		var m__02 = 0;
-		var m__12 = 0;
-		var m__22 = 1;
-		var transformation = new kha_math_FastMatrix3(_this__00 * m__00 + _this__10 * m__01 + _this__20 * m__02,_this__00 * m__10 + _this__10 * m__11 + _this__20 * m__12,_this__00 * m__20 + _this__10 * m__21 + _this__20 * m__22,_this__01 * m__00 + _this__11 * m__01 + _this__21 * m__02,_this__01 * m__10 + _this__11 * m__11 + _this__21 * m__12,_this__01 * m__20 + _this__11 * m__21 + _this__21 * m__22,_this__02 * m__00 + _this__12 * m__01 + _this__22 * m__02,_this__02 * m__10 + _this__12 * m__11 + _this__22 * m__12,_this__02 * m__20 + _this__12 * m__21 + _this__22 * m__22);
-		g.setTransformation(transformation);
-		var _this1 = g.transformations[g.transformations.length - 1];
-		_this1._00 = transformation._00;
-		_this1._10 = transformation._10;
-		_this1._20 = transformation._20;
-		_this1._01 = transformation._01;
-		_this1._11 = transformation._11;
-		_this1._21 = transformation._21;
-		_this1._02 = transformation._02;
-		_this1._12 = transformation._12;
-		_this1._22 = transformation._22;
-		switch(_this.graphicType) {
-		case 0:
-			break;
-		case 1:
-			if(_this.highlight != -1) {
-				g.set_color(_this.common.lowRed);
-				g.fillRect(_this.x / _this.scale,_this.y / _this.scale,_this.width / _this.scale,_this.height / _this.scale);
-				g.set_color(_this.common.lowWhite);
-				g.drawRect(_this.x / _this.scale,_this.y / _this.scale,_this.width / _this.scale,_this.height / _this.scale,_this.common.thick / _this.scale);
-				g.set_color(-1);
-			}
-			g.drawImage(_this.image,_this.x / _this.scale,_this.y / _this.scale);
-			break;
-		case 2:
-			if(_this.highlight != -1) {
-				g.set_color(_this.common.lowRed);
-			} else {
-				g.set_color(_this.common.lowWhite);
-			}
-			g.fillRect(Math.round(_this.x / _this.scale - _this.spaceW),Math.round(_this.y / _this.scale),Math.round(_this.width / _this.scale),Math.round(_this.height / _this.scale));
-			g.set_color(-1);
-			g.drawString(_this.label,Math.round(_this.x / _this.scale),Math.round(_this.y / _this.scale));
-			break;
-		}
-		var transformation1 = new kha_math_FastMatrix3(1,0,0,0,1,0,0,0,1);
-		g.setTransformation(transformation1);
-		var _this2 = g.transformations[g.transformations.length - 1];
-		_this2._00 = transformation1._00;
-		_this2._10 = transformation1._10;
-		_this2._20 = transformation1._20;
-		_this2._01 = transformation1._01;
-		_this2._11 = transformation1._11;
-		_this2._21 = transformation1._21;
-		_this2._02 = transformation1._02;
-		_this2._12 = transformation1._12;
-		_this2._22 = transformation1._22;
-		_this.area = { x : _this.x - _this.spaceW, y : _this.y, r : _this.x + _this.width, b : _this.y + _this.height};
-		g.drawString("draggable image",this.dragImage.x,this.dragImage.y - 25);
-		var _this3 = this.dragText;
-		var _this__001 = 1;
-		var _this__101 = 0;
-		var _this__201 = 0;
-		var _this__011 = 0;
-		var _this__111 = 1;
-		var _this__211 = 0;
-		var _this__021 = 0;
-		var _this__121 = 0;
-		var _this__221 = 1;
-		var m__001 = _this3.scale;
-		var m__101 = 0;
-		var m__201 = 0;
-		var m__011 = 0;
-		var m__111 = _this3.scale;
-		var m__211 = 0;
-		var m__021 = 0;
-		var m__121 = 0;
-		var m__221 = 1;
-		var transformation2 = new kha_math_FastMatrix3(_this__001 * m__001 + _this__101 * m__011 + _this__201 * m__021,_this__001 * m__101 + _this__101 * m__111 + _this__201 * m__121,_this__001 * m__201 + _this__101 * m__211 + _this__201 * m__221,_this__011 * m__001 + _this__111 * m__011 + _this__211 * m__021,_this__011 * m__101 + _this__111 * m__111 + _this__211 * m__121,_this__011 * m__201 + _this__111 * m__211 + _this__211 * m__221,_this__021 * m__001 + _this__121 * m__011 + _this__221 * m__021,_this__021 * m__101 + _this__121 * m__111 + _this__221 * m__121,_this__021 * m__201 + _this__121 * m__211 + _this__221 * m__221);
-		g.setTransformation(transformation2);
-		var _this4 = g.transformations[g.transformations.length - 1];
-		_this4._00 = transformation2._00;
-		_this4._10 = transformation2._10;
-		_this4._20 = transformation2._20;
-		_this4._01 = transformation2._01;
-		_this4._11 = transformation2._11;
-		_this4._21 = transformation2._21;
-		_this4._02 = transformation2._02;
-		_this4._12 = transformation2._12;
-		_this4._22 = transformation2._22;
-		switch(_this3.graphicType) {
-		case 0:
-			break;
-		case 1:
-			if(_this3.highlight != -1) {
-				g.set_color(_this3.common.lowRed);
-				g.fillRect(_this3.x / _this3.scale,_this3.y / _this3.scale,_this3.width / _this3.scale,_this3.height / _this3.scale);
-				g.set_color(_this3.common.lowWhite);
-				g.drawRect(_this3.x / _this3.scale,_this3.y / _this3.scale,_this3.width / _this3.scale,_this3.height / _this3.scale,_this3.common.thick / _this3.scale);
-				g.set_color(-1);
-			}
-			g.drawImage(_this3.image,_this3.x / _this3.scale,_this3.y / _this3.scale);
-			break;
-		case 2:
-			if(_this3.highlight != -1) {
-				g.set_color(_this3.common.lowRed);
-			} else {
-				g.set_color(_this3.common.lowWhite);
-			}
-			g.fillRect(Math.round(_this3.x / _this3.scale - _this3.spaceW),Math.round(_this3.y / _this3.scale),Math.round(_this3.width / _this3.scale),Math.round(_this3.height / _this3.scale));
-			g.set_color(-1);
-			g.drawString(_this3.label,Math.round(_this3.x / _this3.scale),Math.round(_this3.y / _this3.scale));
-			break;
-		}
-		var transformation3 = new kha_math_FastMatrix3(1,0,0,0,1,0,0,0,1);
-		g.setTransformation(transformation3);
-		var _this5 = g.transformations[g.transformations.length - 1];
-		_this5._00 = transformation3._00;
-		_this5._10 = transformation3._10;
-		_this5._20 = transformation3._20;
-		_this5._01 = transformation3._01;
-		_this5._11 = transformation3._11;
-		_this5._21 = transformation3._21;
-		_this5._02 = transformation3._02;
-		_this5._12 = transformation3._12;
-		_this5._22 = transformation3._22;
-		_this3.area = { x : _this3.x - _this3.spaceW, y : _this3.y, r : _this3.x + _this3.width, b : _this3.y + _this3.height};
+	}
+	,render2D: function(g) {
+		fullK_MainTemplate.prototype.render2D.call(this,g);
 	}
 	,__class__: MainApp
 });
@@ -1132,6 +1087,9 @@ fullK_components_ColorHelper.percentBlack = function(percent) {
 	var v = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][100 - percent];
 	return -16777216 | v << 16 | v << 8 | v;
 };
+fullK_components_ColorHelper.rgbPercent = function(rPercent,gPercent,bPercent) {
+	return -16777216 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][rPercent] << 16 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][gPercent] << 8 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][bPercent];
+};
 fullK_components_ColorHelper.argb = function(a,r,g,b) {
 	return a << 24 | r << 16 | g << 8 | b;
 };
@@ -1162,6 +1120,21 @@ fullK_components_ColorHelper.percentBlueSoft = function(bPercent,percentSoft) {
 	var soft = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][percentSoft];
 	return -16777216 | soft << 16 | soft << 8 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][bPercent];
 };
+fullK_components_ColorHelper.percentYellowSoft = function(bPercent,percentSoft) {
+	var soft = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][percentSoft];
+	var color = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][bPercent];
+	return -16777216 | color << 16 | color << 8 | soft;
+};
+fullK_components_ColorHelper.percentMagentaSoft = function(bPercent,percentSoft) {
+	var soft = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][percentSoft];
+	var color = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][bPercent];
+	return -16777216 | color << 16 | soft << 8 | color;
+};
+fullK_components_ColorHelper.percentCyanSoft = function(bPercent,percentSoft) {
+	var soft = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][percentSoft];
+	var color = [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][bPercent];
+	return -16777216 | soft << 16 | color << 8 | color;
+};
 var fullK_components_Common = function() {
 	this.gapH = 16.;
 	this.gapW = 20.;
@@ -1172,6 +1145,7 @@ var fullK_components_Common = function() {
 	this.font = kha_Assets.fonts.OpenSans_Regular;
 	this.dia = this.radiusOutline * 2;
 	this.diaInner = this.radiusInner * 2;
+	this.mainColor = -1;
 	var inlarr_0 = 0;
 	var inlarr_1 = 48;
 	var inlarr_2 = 80;
@@ -1375,7 +1349,7 @@ var fullK_components_Common = function() {
 	var inlarr_981 = 250;
 	var inlarr_991 = 252;
 	var inlarr_1001 = 255;
-	this.lowRed = -16777216 | inlarr_151 << 16 | soft << 8 | soft;
+	this.overColor = -16777216 | inlarr_151 << 16 | soft << 8 | soft;
 	var inlarr_02 = 0;
 	var inlarr_112 = 48;
 	var inlarr_212 = 80;
@@ -1478,7 +1452,7 @@ var fullK_components_Common = function() {
 	var inlarr_992 = 252;
 	var inlarr_1002 = 255;
 	var v = inlarr_152;
-	this.lowWhite = -16777216 | v << 16 | v << 8 | v;
+	this.outColor = -16777216 | v << 16 | v << 8 | v;
 };
 $hxClasses["fullK.components.Common"] = fullK_components_Common;
 fullK_components_Common.__name__ = true;
@@ -1492,8 +1466,1254 @@ fullK_components_Common.prototype = {
 	,gapH: null
 	,dia: null
 	,diaInner: null
-	,lowRed: null
-	,lowWhite: null
+	,overColor: null
+	,outColor: null
+	,mainColor: null
+	,overColorSetup: function(overCol) {
+		var tmp;
+		switch(overCol) {
+		case 0:
+			var inlarr_0 = 0;
+			var inlarr_1 = 48;
+			var inlarr_2 = 80;
+			var inlarr_3 = 128;
+			var inlarr_4 = 10;
+			var inlarr_5 = 13;
+			var inlarr_6 = 15;
+			var inlarr_7 = 18;
+			var inlarr_8 = 20;
+			var inlarr_9 = 23;
+			var inlarr_10 = 25;
+			var inlarr_11 = 28;
+			var inlarr_12 = 31;
+			var inlarr_13 = 33;
+			var inlarr_14 = 36;
+			var inlarr_15 = 38;
+			var inlarr_16 = 41;
+			var inlarr_17 = 43;
+			var inlarr_18 = 46;
+			var inlarr_19 = 48;
+			var inlarr_20 = 51;
+			var inlarr_21 = 54;
+			var inlarr_22 = 56;
+			var inlarr_23 = 59;
+			var inlarr_24 = 61;
+			var inlarr_25 = 64;
+			var inlarr_26 = 66;
+			var inlarr_27 = 69;
+			var inlarr_28 = 71;
+			var inlarr_29 = 74;
+			var inlarr_30 = 76;
+			var inlarr_31 = 79;
+			var inlarr_32 = 82;
+			var inlarr_33 = 84;
+			var inlarr_34 = 87;
+			var inlarr_35 = 89;
+			var inlarr_36 = 92;
+			var inlarr_37 = 94;
+			var inlarr_38 = 97;
+			var inlarr_39 = 99;
+			var inlarr_40 = 102;
+			var inlarr_41 = 105;
+			var inlarr_42 = 107;
+			var inlarr_43 = 110;
+			var inlarr_44 = 112;
+			var inlarr_45 = 115;
+			var inlarr_46 = 117;
+			var inlarr_47 = 120;
+			var inlarr_48 = 122;
+			var inlarr_49 = 125;
+			var inlarr_50 = 127;
+			var inlarr_51 = 130;
+			var inlarr_52 = 133;
+			var inlarr_53 = 135;
+			var inlarr_54 = 138;
+			var inlarr_55 = 140;
+			var inlarr_56 = 143;
+			var inlarr_57 = 145;
+			var inlarr_58 = 148;
+			var inlarr_59 = 150;
+			var inlarr_60 = 153;
+			var inlarr_61 = 156;
+			var inlarr_62 = 158;
+			var inlarr_63 = 161;
+			var inlarr_64 = 163;
+			var inlarr_65 = 166;
+			var inlarr_66 = 168;
+			var inlarr_67 = 171;
+			var inlarr_68 = 173;
+			var inlarr_69 = 176;
+			var inlarr_70 = 178;
+			var inlarr_71 = 181;
+			var inlarr_72 = 186;
+			var inlarr_73 = 189;
+			var inlarr_74 = 191;
+			var inlarr_75 = 194;
+			var inlarr_76 = 196;
+			var inlarr_77 = 199;
+			var inlarr_78 = 201;
+			var inlarr_79 = 201;
+			var inlarr_80 = 204;
+			var inlarr_81 = 207;
+			var inlarr_82 = 209;
+			var inlarr_83 = 212;
+			var inlarr_84 = 214;
+			var inlarr_85 = 217;
+			var inlarr_86 = 219;
+			var inlarr_87 = 222;
+			var inlarr_88 = 224;
+			var inlarr_89 = 227;
+			var inlarr_90 = 229;
+			var inlarr_91 = 232;
+			var inlarr_92 = 235;
+			var inlarr_93 = 237;
+			var inlarr_94 = 240;
+			var inlarr_95 = 242;
+			var inlarr_96 = 245;
+			var inlarr_97 = 247;
+			var inlarr_98 = 250;
+			var inlarr_99 = 252;
+			var inlarr_100 = 255;
+			var soft = inlarr_10;
+			var inlarr_01 = 0;
+			var inlarr_110 = 48;
+			var inlarr_210 = 80;
+			var inlarr_310 = 128;
+			var inlarr_410 = 10;
+			var inlarr_510 = 13;
+			var inlarr_610 = 15;
+			var inlarr_710 = 18;
+			var inlarr_810 = 20;
+			var inlarr_910 = 23;
+			var inlarr_101 = 25;
+			var inlarr_111 = 28;
+			var inlarr_121 = 31;
+			var inlarr_131 = 33;
+			var inlarr_141 = 36;
+			var inlarr_151 = 38;
+			var inlarr_161 = 41;
+			var inlarr_171 = 43;
+			var inlarr_181 = 46;
+			var inlarr_191 = 48;
+			var inlarr_201 = 51;
+			var inlarr_211 = 54;
+			var inlarr_221 = 56;
+			var inlarr_231 = 59;
+			var inlarr_241 = 61;
+			var inlarr_251 = 64;
+			var inlarr_261 = 66;
+			var inlarr_271 = 69;
+			var inlarr_281 = 71;
+			var inlarr_291 = 74;
+			var inlarr_301 = 76;
+			var inlarr_311 = 79;
+			var inlarr_321 = 82;
+			var inlarr_331 = 84;
+			var inlarr_341 = 87;
+			var inlarr_351 = 89;
+			var inlarr_361 = 92;
+			var inlarr_371 = 94;
+			var inlarr_381 = 97;
+			var inlarr_391 = 99;
+			var inlarr_401 = 102;
+			var inlarr_411 = 105;
+			var inlarr_421 = 107;
+			var inlarr_431 = 110;
+			var inlarr_441 = 112;
+			var inlarr_451 = 115;
+			var inlarr_461 = 117;
+			var inlarr_471 = 120;
+			var inlarr_481 = 122;
+			var inlarr_491 = 125;
+			var inlarr_501 = 127;
+			var inlarr_511 = 130;
+			var inlarr_521 = 133;
+			var inlarr_531 = 135;
+			var inlarr_541 = 138;
+			var inlarr_551 = 140;
+			var inlarr_561 = 143;
+			var inlarr_571 = 145;
+			var inlarr_581 = 148;
+			var inlarr_591 = 150;
+			var inlarr_601 = 153;
+			var inlarr_611 = 156;
+			var inlarr_621 = 158;
+			var inlarr_631 = 161;
+			var inlarr_641 = 163;
+			var inlarr_651 = 166;
+			var inlarr_661 = 168;
+			var inlarr_671 = 171;
+			var inlarr_681 = 173;
+			var inlarr_691 = 176;
+			var inlarr_701 = 178;
+			var inlarr_711 = 181;
+			var inlarr_721 = 186;
+			var inlarr_731 = 189;
+			var inlarr_741 = 191;
+			var inlarr_751 = 194;
+			var inlarr_761 = 196;
+			var inlarr_771 = 199;
+			var inlarr_781 = 201;
+			var inlarr_791 = 201;
+			var inlarr_801 = 204;
+			var inlarr_811 = 207;
+			var inlarr_821 = 209;
+			var inlarr_831 = 212;
+			var inlarr_841 = 214;
+			var inlarr_851 = 217;
+			var inlarr_861 = 219;
+			var inlarr_871 = 222;
+			var inlarr_881 = 224;
+			var inlarr_891 = 227;
+			var inlarr_901 = 229;
+			var inlarr_911 = 232;
+			var inlarr_921 = 235;
+			var inlarr_931 = 237;
+			var inlarr_941 = 240;
+			var inlarr_951 = 242;
+			var inlarr_961 = 245;
+			var inlarr_971 = 247;
+			var inlarr_981 = 250;
+			var inlarr_991 = 252;
+			var inlarr_1001 = 255;
+			tmp = -16777216 | inlarr_151 << 16 | soft << 8 | soft;
+			break;
+		case 1:
+			var inlarr_02 = 0;
+			var inlarr_112 = 48;
+			var inlarr_212 = 80;
+			var inlarr_312 = 128;
+			var inlarr_412 = 10;
+			var inlarr_512 = 13;
+			var inlarr_612 = 15;
+			var inlarr_712 = 18;
+			var inlarr_812 = 20;
+			var inlarr_912 = 23;
+			var inlarr_102 = 25;
+			var inlarr_113 = 28;
+			var inlarr_122 = 31;
+			var inlarr_132 = 33;
+			var inlarr_142 = 36;
+			var inlarr_152 = 38;
+			var inlarr_162 = 41;
+			var inlarr_172 = 43;
+			var inlarr_182 = 46;
+			var inlarr_192 = 48;
+			var inlarr_202 = 51;
+			var inlarr_213 = 54;
+			var inlarr_222 = 56;
+			var inlarr_232 = 59;
+			var inlarr_242 = 61;
+			var inlarr_252 = 64;
+			var inlarr_262 = 66;
+			var inlarr_272 = 69;
+			var inlarr_282 = 71;
+			var inlarr_292 = 74;
+			var inlarr_302 = 76;
+			var inlarr_313 = 79;
+			var inlarr_322 = 82;
+			var inlarr_332 = 84;
+			var inlarr_342 = 87;
+			var inlarr_352 = 89;
+			var inlarr_362 = 92;
+			var inlarr_372 = 94;
+			var inlarr_382 = 97;
+			var inlarr_392 = 99;
+			var inlarr_402 = 102;
+			var inlarr_413 = 105;
+			var inlarr_422 = 107;
+			var inlarr_432 = 110;
+			var inlarr_442 = 112;
+			var inlarr_452 = 115;
+			var inlarr_462 = 117;
+			var inlarr_472 = 120;
+			var inlarr_482 = 122;
+			var inlarr_492 = 125;
+			var inlarr_502 = 127;
+			var inlarr_513 = 130;
+			var inlarr_522 = 133;
+			var inlarr_532 = 135;
+			var inlarr_542 = 138;
+			var inlarr_552 = 140;
+			var inlarr_562 = 143;
+			var inlarr_572 = 145;
+			var inlarr_582 = 148;
+			var inlarr_592 = 150;
+			var inlarr_602 = 153;
+			var inlarr_613 = 156;
+			var inlarr_622 = 158;
+			var inlarr_632 = 161;
+			var inlarr_642 = 163;
+			var inlarr_652 = 166;
+			var inlarr_662 = 168;
+			var inlarr_672 = 171;
+			var inlarr_682 = 173;
+			var inlarr_692 = 176;
+			var inlarr_702 = 178;
+			var inlarr_713 = 181;
+			var inlarr_722 = 186;
+			var inlarr_732 = 189;
+			var inlarr_742 = 191;
+			var inlarr_752 = 194;
+			var inlarr_762 = 196;
+			var inlarr_772 = 199;
+			var inlarr_782 = 201;
+			var inlarr_792 = 201;
+			var inlarr_802 = 204;
+			var inlarr_813 = 207;
+			var inlarr_822 = 209;
+			var inlarr_832 = 212;
+			var inlarr_842 = 214;
+			var inlarr_852 = 217;
+			var inlarr_862 = 219;
+			var inlarr_872 = 222;
+			var inlarr_882 = 224;
+			var inlarr_892 = 227;
+			var inlarr_902 = 229;
+			var inlarr_913 = 232;
+			var inlarr_922 = 235;
+			var inlarr_932 = 237;
+			var inlarr_942 = 240;
+			var inlarr_952 = 242;
+			var inlarr_962 = 245;
+			var inlarr_972 = 247;
+			var inlarr_982 = 250;
+			var inlarr_992 = 252;
+			var inlarr_1002 = 255;
+			var soft1 = inlarr_102;
+			var inlarr_03 = 0;
+			var inlarr_114 = 48;
+			var inlarr_214 = 80;
+			var inlarr_314 = 128;
+			var inlarr_414 = 10;
+			var inlarr_514 = 13;
+			var inlarr_614 = 15;
+			var inlarr_714 = 18;
+			var inlarr_814 = 20;
+			var inlarr_914 = 23;
+			var inlarr_103 = 25;
+			var inlarr_115 = 28;
+			var inlarr_123 = 31;
+			var inlarr_133 = 33;
+			var inlarr_143 = 36;
+			var inlarr_153 = 38;
+			var inlarr_163 = 41;
+			var inlarr_173 = 43;
+			var inlarr_183 = 46;
+			var inlarr_193 = 48;
+			var inlarr_203 = 51;
+			var inlarr_215 = 54;
+			var inlarr_223 = 56;
+			var inlarr_233 = 59;
+			var inlarr_243 = 61;
+			var inlarr_253 = 64;
+			var inlarr_263 = 66;
+			var inlarr_273 = 69;
+			var inlarr_283 = 71;
+			var inlarr_293 = 74;
+			var inlarr_303 = 76;
+			var inlarr_315 = 79;
+			var inlarr_323 = 82;
+			var inlarr_333 = 84;
+			var inlarr_343 = 87;
+			var inlarr_353 = 89;
+			var inlarr_363 = 92;
+			var inlarr_373 = 94;
+			var inlarr_383 = 97;
+			var inlarr_393 = 99;
+			var inlarr_403 = 102;
+			var inlarr_415 = 105;
+			var inlarr_423 = 107;
+			var inlarr_433 = 110;
+			var inlarr_443 = 112;
+			var inlarr_453 = 115;
+			var inlarr_463 = 117;
+			var inlarr_473 = 120;
+			var inlarr_483 = 122;
+			var inlarr_493 = 125;
+			var inlarr_503 = 127;
+			var inlarr_515 = 130;
+			var inlarr_523 = 133;
+			var inlarr_533 = 135;
+			var inlarr_543 = 138;
+			var inlarr_553 = 140;
+			var inlarr_563 = 143;
+			var inlarr_573 = 145;
+			var inlarr_583 = 148;
+			var inlarr_593 = 150;
+			var inlarr_603 = 153;
+			var inlarr_615 = 156;
+			var inlarr_623 = 158;
+			var inlarr_633 = 161;
+			var inlarr_643 = 163;
+			var inlarr_653 = 166;
+			var inlarr_663 = 168;
+			var inlarr_673 = 171;
+			var inlarr_683 = 173;
+			var inlarr_693 = 176;
+			var inlarr_703 = 178;
+			var inlarr_715 = 181;
+			var inlarr_723 = 186;
+			var inlarr_733 = 189;
+			var inlarr_743 = 191;
+			var inlarr_753 = 194;
+			var inlarr_763 = 196;
+			var inlarr_773 = 199;
+			var inlarr_783 = 201;
+			var inlarr_793 = 201;
+			var inlarr_803 = 204;
+			var inlarr_815 = 207;
+			var inlarr_823 = 209;
+			var inlarr_833 = 212;
+			var inlarr_843 = 214;
+			var inlarr_853 = 217;
+			var inlarr_863 = 219;
+			var inlarr_873 = 222;
+			var inlarr_883 = 224;
+			var inlarr_893 = 227;
+			var inlarr_903 = 229;
+			var inlarr_915 = 232;
+			var inlarr_923 = 235;
+			var inlarr_933 = 237;
+			var inlarr_943 = 240;
+			var inlarr_953 = 242;
+			var inlarr_963 = 245;
+			var inlarr_973 = 247;
+			var inlarr_983 = 250;
+			var inlarr_993 = 252;
+			var inlarr_1003 = 255;
+			tmp = -16777216 | soft1 << 16 | inlarr_153 << 8 | soft1;
+			break;
+		case 2:
+			var inlarr_04 = 0;
+			var inlarr_116 = 48;
+			var inlarr_216 = 80;
+			var inlarr_316 = 128;
+			var inlarr_416 = 10;
+			var inlarr_516 = 13;
+			var inlarr_616 = 15;
+			var inlarr_716 = 18;
+			var inlarr_816 = 20;
+			var inlarr_916 = 23;
+			var inlarr_104 = 25;
+			var inlarr_117 = 28;
+			var inlarr_124 = 31;
+			var inlarr_134 = 33;
+			var inlarr_144 = 36;
+			var inlarr_154 = 38;
+			var inlarr_164 = 41;
+			var inlarr_174 = 43;
+			var inlarr_184 = 46;
+			var inlarr_194 = 48;
+			var inlarr_204 = 51;
+			var inlarr_217 = 54;
+			var inlarr_224 = 56;
+			var inlarr_234 = 59;
+			var inlarr_244 = 61;
+			var inlarr_254 = 64;
+			var inlarr_264 = 66;
+			var inlarr_274 = 69;
+			var inlarr_284 = 71;
+			var inlarr_294 = 74;
+			var inlarr_304 = 76;
+			var inlarr_317 = 79;
+			var inlarr_324 = 82;
+			var inlarr_334 = 84;
+			var inlarr_344 = 87;
+			var inlarr_354 = 89;
+			var inlarr_364 = 92;
+			var inlarr_374 = 94;
+			var inlarr_384 = 97;
+			var inlarr_394 = 99;
+			var inlarr_404 = 102;
+			var inlarr_417 = 105;
+			var inlarr_424 = 107;
+			var inlarr_434 = 110;
+			var inlarr_444 = 112;
+			var inlarr_454 = 115;
+			var inlarr_464 = 117;
+			var inlarr_474 = 120;
+			var inlarr_484 = 122;
+			var inlarr_494 = 125;
+			var inlarr_504 = 127;
+			var inlarr_517 = 130;
+			var inlarr_524 = 133;
+			var inlarr_534 = 135;
+			var inlarr_544 = 138;
+			var inlarr_554 = 140;
+			var inlarr_564 = 143;
+			var inlarr_574 = 145;
+			var inlarr_584 = 148;
+			var inlarr_594 = 150;
+			var inlarr_604 = 153;
+			var inlarr_617 = 156;
+			var inlarr_624 = 158;
+			var inlarr_634 = 161;
+			var inlarr_644 = 163;
+			var inlarr_654 = 166;
+			var inlarr_664 = 168;
+			var inlarr_674 = 171;
+			var inlarr_684 = 173;
+			var inlarr_694 = 176;
+			var inlarr_704 = 178;
+			var inlarr_717 = 181;
+			var inlarr_724 = 186;
+			var inlarr_734 = 189;
+			var inlarr_744 = 191;
+			var inlarr_754 = 194;
+			var inlarr_764 = 196;
+			var inlarr_774 = 199;
+			var inlarr_784 = 201;
+			var inlarr_794 = 201;
+			var inlarr_804 = 204;
+			var inlarr_817 = 207;
+			var inlarr_824 = 209;
+			var inlarr_834 = 212;
+			var inlarr_844 = 214;
+			var inlarr_854 = 217;
+			var inlarr_864 = 219;
+			var inlarr_874 = 222;
+			var inlarr_884 = 224;
+			var inlarr_894 = 227;
+			var inlarr_904 = 229;
+			var inlarr_917 = 232;
+			var inlarr_924 = 235;
+			var inlarr_934 = 237;
+			var inlarr_944 = 240;
+			var inlarr_954 = 242;
+			var inlarr_964 = 245;
+			var inlarr_974 = 247;
+			var inlarr_984 = 250;
+			var inlarr_994 = 252;
+			var inlarr_1004 = 255;
+			var soft2 = inlarr_104;
+			var inlarr_05 = 0;
+			var inlarr_118 = 48;
+			var inlarr_218 = 80;
+			var inlarr_318 = 128;
+			var inlarr_418 = 10;
+			var inlarr_518 = 13;
+			var inlarr_618 = 15;
+			var inlarr_718 = 18;
+			var inlarr_818 = 20;
+			var inlarr_918 = 23;
+			var inlarr_105 = 25;
+			var inlarr_119 = 28;
+			var inlarr_125 = 31;
+			var inlarr_135 = 33;
+			var inlarr_145 = 36;
+			var inlarr_155 = 38;
+			var inlarr_165 = 41;
+			var inlarr_175 = 43;
+			var inlarr_185 = 46;
+			var inlarr_195 = 48;
+			var inlarr_205 = 51;
+			var inlarr_219 = 54;
+			var inlarr_225 = 56;
+			var inlarr_235 = 59;
+			var inlarr_245 = 61;
+			var inlarr_255 = 64;
+			var inlarr_265 = 66;
+			var inlarr_275 = 69;
+			var inlarr_285 = 71;
+			var inlarr_295 = 74;
+			var inlarr_305 = 76;
+			var inlarr_319 = 79;
+			var inlarr_325 = 82;
+			var inlarr_335 = 84;
+			var inlarr_345 = 87;
+			var inlarr_355 = 89;
+			var inlarr_365 = 92;
+			var inlarr_375 = 94;
+			var inlarr_385 = 97;
+			var inlarr_395 = 99;
+			var inlarr_405 = 102;
+			var inlarr_419 = 105;
+			var inlarr_425 = 107;
+			var inlarr_435 = 110;
+			var inlarr_445 = 112;
+			var inlarr_455 = 115;
+			var inlarr_465 = 117;
+			var inlarr_475 = 120;
+			var inlarr_485 = 122;
+			var inlarr_495 = 125;
+			var inlarr_505 = 127;
+			var inlarr_519 = 130;
+			var inlarr_525 = 133;
+			var inlarr_535 = 135;
+			var inlarr_545 = 138;
+			var inlarr_555 = 140;
+			var inlarr_565 = 143;
+			var inlarr_575 = 145;
+			var inlarr_585 = 148;
+			var inlarr_595 = 150;
+			var inlarr_605 = 153;
+			var inlarr_619 = 156;
+			var inlarr_625 = 158;
+			var inlarr_635 = 161;
+			var inlarr_645 = 163;
+			var inlarr_655 = 166;
+			var inlarr_665 = 168;
+			var inlarr_675 = 171;
+			var inlarr_685 = 173;
+			var inlarr_695 = 176;
+			var inlarr_705 = 178;
+			var inlarr_719 = 181;
+			var inlarr_725 = 186;
+			var inlarr_735 = 189;
+			var inlarr_745 = 191;
+			var inlarr_755 = 194;
+			var inlarr_765 = 196;
+			var inlarr_775 = 199;
+			var inlarr_785 = 201;
+			var inlarr_795 = 201;
+			var inlarr_805 = 204;
+			var inlarr_819 = 207;
+			var inlarr_825 = 209;
+			var inlarr_835 = 212;
+			var inlarr_845 = 214;
+			var inlarr_855 = 217;
+			var inlarr_865 = 219;
+			var inlarr_875 = 222;
+			var inlarr_885 = 224;
+			var inlarr_895 = 227;
+			var inlarr_905 = 229;
+			var inlarr_919 = 232;
+			var inlarr_925 = 235;
+			var inlarr_935 = 237;
+			var inlarr_945 = 240;
+			var inlarr_955 = 242;
+			var inlarr_965 = 245;
+			var inlarr_975 = 247;
+			var inlarr_985 = 250;
+			var inlarr_995 = 252;
+			var inlarr_1005 = 255;
+			tmp = -16777216 | soft2 << 16 | soft2 << 8 | inlarr_155;
+			break;
+		case 3:
+			var inlarr_06 = 0;
+			var inlarr_120 = 48;
+			var inlarr_220 = 80;
+			var inlarr_320 = 128;
+			var inlarr_420 = 10;
+			var inlarr_520 = 13;
+			var inlarr_620 = 15;
+			var inlarr_720 = 18;
+			var inlarr_820 = 20;
+			var inlarr_920 = 23;
+			var inlarr_106 = 25;
+			var inlarr_1110 = 28;
+			var inlarr_126 = 31;
+			var inlarr_136 = 33;
+			var inlarr_146 = 36;
+			var inlarr_156 = 38;
+			var inlarr_166 = 41;
+			var inlarr_176 = 43;
+			var inlarr_186 = 46;
+			var inlarr_196 = 48;
+			var inlarr_206 = 51;
+			var inlarr_2110 = 54;
+			var inlarr_226 = 56;
+			var inlarr_236 = 59;
+			var inlarr_246 = 61;
+			var inlarr_256 = 64;
+			var inlarr_266 = 66;
+			var inlarr_276 = 69;
+			var inlarr_286 = 71;
+			var inlarr_296 = 74;
+			var inlarr_306 = 76;
+			var inlarr_3110 = 79;
+			var inlarr_326 = 82;
+			var inlarr_336 = 84;
+			var inlarr_346 = 87;
+			var inlarr_356 = 89;
+			var inlarr_366 = 92;
+			var inlarr_376 = 94;
+			var inlarr_386 = 97;
+			var inlarr_396 = 99;
+			var inlarr_406 = 102;
+			var inlarr_4110 = 105;
+			var inlarr_426 = 107;
+			var inlarr_436 = 110;
+			var inlarr_446 = 112;
+			var inlarr_456 = 115;
+			var inlarr_466 = 117;
+			var inlarr_476 = 120;
+			var inlarr_486 = 122;
+			var inlarr_496 = 125;
+			var inlarr_506 = 127;
+			var inlarr_5110 = 130;
+			var inlarr_526 = 133;
+			var inlarr_536 = 135;
+			var inlarr_546 = 138;
+			var inlarr_556 = 140;
+			var inlarr_566 = 143;
+			var inlarr_576 = 145;
+			var inlarr_586 = 148;
+			var inlarr_596 = 150;
+			var inlarr_606 = 153;
+			var inlarr_6110 = 156;
+			var inlarr_626 = 158;
+			var inlarr_636 = 161;
+			var inlarr_646 = 163;
+			var inlarr_656 = 166;
+			var inlarr_666 = 168;
+			var inlarr_676 = 171;
+			var inlarr_686 = 173;
+			var inlarr_696 = 176;
+			var inlarr_706 = 178;
+			var inlarr_7110 = 181;
+			var inlarr_726 = 186;
+			var inlarr_736 = 189;
+			var inlarr_746 = 191;
+			var inlarr_756 = 194;
+			var inlarr_766 = 196;
+			var inlarr_776 = 199;
+			var inlarr_786 = 201;
+			var inlarr_796 = 201;
+			var inlarr_806 = 204;
+			var inlarr_8110 = 207;
+			var inlarr_826 = 209;
+			var inlarr_836 = 212;
+			var inlarr_846 = 214;
+			var inlarr_856 = 217;
+			var inlarr_866 = 219;
+			var inlarr_876 = 222;
+			var inlarr_886 = 224;
+			var inlarr_896 = 227;
+			var inlarr_906 = 229;
+			var inlarr_9110 = 232;
+			var inlarr_926 = 235;
+			var inlarr_936 = 237;
+			var inlarr_946 = 240;
+			var inlarr_956 = 242;
+			var inlarr_966 = 245;
+			var inlarr_976 = 247;
+			var inlarr_986 = 250;
+			var inlarr_996 = 252;
+			var inlarr_1006 = 255;
+			var soft3 = inlarr_106;
+			var inlarr_07 = 0;
+			var inlarr_127 = 48;
+			var inlarr_227 = 80;
+			var inlarr_327 = 128;
+			var inlarr_427 = 10;
+			var inlarr_527 = 13;
+			var inlarr_627 = 15;
+			var inlarr_727 = 18;
+			var inlarr_827 = 20;
+			var inlarr_927 = 23;
+			var inlarr_107 = 25;
+			var inlarr_1111 = 28;
+			var inlarr_128 = 31;
+			var inlarr_137 = 33;
+			var inlarr_147 = 36;
+			var inlarr_157 = 38;
+			var inlarr_167 = 41;
+			var inlarr_177 = 43;
+			var inlarr_187 = 46;
+			var inlarr_197 = 48;
+			var inlarr_207 = 51;
+			var inlarr_2111 = 54;
+			var inlarr_228 = 56;
+			var inlarr_237 = 59;
+			var inlarr_247 = 61;
+			var inlarr_257 = 64;
+			var inlarr_267 = 66;
+			var inlarr_277 = 69;
+			var inlarr_287 = 71;
+			var inlarr_297 = 74;
+			var inlarr_307 = 76;
+			var inlarr_3111 = 79;
+			var inlarr_328 = 82;
+			var inlarr_337 = 84;
+			var inlarr_347 = 87;
+			var inlarr_357 = 89;
+			var inlarr_367 = 92;
+			var inlarr_377 = 94;
+			var inlarr_387 = 97;
+			var inlarr_397 = 99;
+			var inlarr_407 = 102;
+			var inlarr_4111 = 105;
+			var inlarr_428 = 107;
+			var inlarr_437 = 110;
+			var inlarr_447 = 112;
+			var inlarr_457 = 115;
+			var inlarr_467 = 117;
+			var inlarr_477 = 120;
+			var inlarr_487 = 122;
+			var inlarr_497 = 125;
+			var inlarr_507 = 127;
+			var inlarr_5111 = 130;
+			var inlarr_528 = 133;
+			var inlarr_537 = 135;
+			var inlarr_547 = 138;
+			var inlarr_557 = 140;
+			var inlarr_567 = 143;
+			var inlarr_577 = 145;
+			var inlarr_587 = 148;
+			var inlarr_597 = 150;
+			var inlarr_607 = 153;
+			var inlarr_6111 = 156;
+			var inlarr_628 = 158;
+			var inlarr_637 = 161;
+			var inlarr_647 = 163;
+			var inlarr_657 = 166;
+			var inlarr_667 = 168;
+			var inlarr_677 = 171;
+			var inlarr_687 = 173;
+			var inlarr_697 = 176;
+			var inlarr_707 = 178;
+			var inlarr_7111 = 181;
+			var inlarr_728 = 186;
+			var inlarr_737 = 189;
+			var inlarr_747 = 191;
+			var inlarr_757 = 194;
+			var inlarr_767 = 196;
+			var inlarr_777 = 199;
+			var inlarr_787 = 201;
+			var inlarr_797 = 201;
+			var inlarr_807 = 204;
+			var inlarr_8111 = 207;
+			var inlarr_828 = 209;
+			var inlarr_837 = 212;
+			var inlarr_847 = 214;
+			var inlarr_857 = 217;
+			var inlarr_867 = 219;
+			var inlarr_877 = 222;
+			var inlarr_887 = 224;
+			var inlarr_897 = 227;
+			var inlarr_907 = 229;
+			var inlarr_9111 = 232;
+			var inlarr_928 = 235;
+			var inlarr_937 = 237;
+			var inlarr_947 = 240;
+			var inlarr_957 = 242;
+			var inlarr_967 = 245;
+			var inlarr_977 = 247;
+			var inlarr_987 = 250;
+			var inlarr_997 = 252;
+			var inlarr_1007 = 255;
+			var color = inlarr_157;
+			tmp = -16777216 | color << 16 | color << 8 | soft3;
+			break;
+		case 4:
+			var inlarr_08 = 0;
+			var inlarr_129 = 48;
+			var inlarr_229 = 80;
+			var inlarr_329 = 128;
+			var inlarr_429 = 10;
+			var inlarr_529 = 13;
+			var inlarr_629 = 15;
+			var inlarr_729 = 18;
+			var inlarr_829 = 20;
+			var inlarr_929 = 23;
+			var inlarr_108 = 25;
+			var inlarr_1112 = 28;
+			var inlarr_1210 = 31;
+			var inlarr_138 = 33;
+			var inlarr_148 = 36;
+			var inlarr_158 = 38;
+			var inlarr_168 = 41;
+			var inlarr_178 = 43;
+			var inlarr_188 = 46;
+			var inlarr_198 = 48;
+			var inlarr_208 = 51;
+			var inlarr_2112 = 54;
+			var inlarr_2210 = 56;
+			var inlarr_238 = 59;
+			var inlarr_248 = 61;
+			var inlarr_258 = 64;
+			var inlarr_268 = 66;
+			var inlarr_278 = 69;
+			var inlarr_288 = 71;
+			var inlarr_298 = 74;
+			var inlarr_308 = 76;
+			var inlarr_3112 = 79;
+			var inlarr_3210 = 82;
+			var inlarr_338 = 84;
+			var inlarr_348 = 87;
+			var inlarr_358 = 89;
+			var inlarr_368 = 92;
+			var inlarr_378 = 94;
+			var inlarr_388 = 97;
+			var inlarr_398 = 99;
+			var inlarr_408 = 102;
+			var inlarr_4112 = 105;
+			var inlarr_4210 = 107;
+			var inlarr_438 = 110;
+			var inlarr_448 = 112;
+			var inlarr_458 = 115;
+			var inlarr_468 = 117;
+			var inlarr_478 = 120;
+			var inlarr_488 = 122;
+			var inlarr_498 = 125;
+			var inlarr_508 = 127;
+			var inlarr_5112 = 130;
+			var inlarr_5210 = 133;
+			var inlarr_538 = 135;
+			var inlarr_548 = 138;
+			var inlarr_558 = 140;
+			var inlarr_568 = 143;
+			var inlarr_578 = 145;
+			var inlarr_588 = 148;
+			var inlarr_598 = 150;
+			var inlarr_608 = 153;
+			var inlarr_6112 = 156;
+			var inlarr_6210 = 158;
+			var inlarr_638 = 161;
+			var inlarr_648 = 163;
+			var inlarr_658 = 166;
+			var inlarr_668 = 168;
+			var inlarr_678 = 171;
+			var inlarr_688 = 173;
+			var inlarr_698 = 176;
+			var inlarr_708 = 178;
+			var inlarr_7112 = 181;
+			var inlarr_7210 = 186;
+			var inlarr_738 = 189;
+			var inlarr_748 = 191;
+			var inlarr_758 = 194;
+			var inlarr_768 = 196;
+			var inlarr_778 = 199;
+			var inlarr_788 = 201;
+			var inlarr_798 = 201;
+			var inlarr_808 = 204;
+			var inlarr_8112 = 207;
+			var inlarr_8210 = 209;
+			var inlarr_838 = 212;
+			var inlarr_848 = 214;
+			var inlarr_858 = 217;
+			var inlarr_868 = 219;
+			var inlarr_878 = 222;
+			var inlarr_888 = 224;
+			var inlarr_898 = 227;
+			var inlarr_908 = 229;
+			var inlarr_9112 = 232;
+			var inlarr_9210 = 235;
+			var inlarr_938 = 237;
+			var inlarr_948 = 240;
+			var inlarr_958 = 242;
+			var inlarr_968 = 245;
+			var inlarr_978 = 247;
+			var inlarr_988 = 250;
+			var inlarr_998 = 252;
+			var inlarr_1008 = 255;
+			var soft4 = inlarr_108;
+			var inlarr_09 = 0;
+			var inlarr_130 = 48;
+			var inlarr_230 = 80;
+			var inlarr_330 = 128;
+			var inlarr_430 = 10;
+			var inlarr_530 = 13;
+			var inlarr_630 = 15;
+			var inlarr_730 = 18;
+			var inlarr_830 = 20;
+			var inlarr_930 = 23;
+			var inlarr_109 = 25;
+			var inlarr_1113 = 28;
+			var inlarr_1211 = 31;
+			var inlarr_139 = 33;
+			var inlarr_149 = 36;
+			var inlarr_159 = 38;
+			var inlarr_169 = 41;
+			var inlarr_179 = 43;
+			var inlarr_189 = 46;
+			var inlarr_199 = 48;
+			var inlarr_209 = 51;
+			var inlarr_2113 = 54;
+			var inlarr_2211 = 56;
+			var inlarr_239 = 59;
+			var inlarr_249 = 61;
+			var inlarr_259 = 64;
+			var inlarr_269 = 66;
+			var inlarr_279 = 69;
+			var inlarr_289 = 71;
+			var inlarr_299 = 74;
+			var inlarr_309 = 76;
+			var inlarr_3113 = 79;
+			var inlarr_3211 = 82;
+			var inlarr_339 = 84;
+			var inlarr_349 = 87;
+			var inlarr_359 = 89;
+			var inlarr_369 = 92;
+			var inlarr_379 = 94;
+			var inlarr_389 = 97;
+			var inlarr_399 = 99;
+			var inlarr_409 = 102;
+			var inlarr_4113 = 105;
+			var inlarr_4211 = 107;
+			var inlarr_439 = 110;
+			var inlarr_449 = 112;
+			var inlarr_459 = 115;
+			var inlarr_469 = 117;
+			var inlarr_479 = 120;
+			var inlarr_489 = 122;
+			var inlarr_499 = 125;
+			var inlarr_509 = 127;
+			var inlarr_5113 = 130;
+			var inlarr_5211 = 133;
+			var inlarr_539 = 135;
+			var inlarr_549 = 138;
+			var inlarr_559 = 140;
+			var inlarr_569 = 143;
+			var inlarr_579 = 145;
+			var inlarr_589 = 148;
+			var inlarr_599 = 150;
+			var inlarr_609 = 153;
+			var inlarr_6113 = 156;
+			var inlarr_6211 = 158;
+			var inlarr_639 = 161;
+			var inlarr_649 = 163;
+			var inlarr_659 = 166;
+			var inlarr_669 = 168;
+			var inlarr_679 = 171;
+			var inlarr_689 = 173;
+			var inlarr_699 = 176;
+			var inlarr_709 = 178;
+			var inlarr_7113 = 181;
+			var inlarr_7211 = 186;
+			var inlarr_739 = 189;
+			var inlarr_749 = 191;
+			var inlarr_759 = 194;
+			var inlarr_769 = 196;
+			var inlarr_779 = 199;
+			var inlarr_789 = 201;
+			var inlarr_799 = 201;
+			var inlarr_809 = 204;
+			var inlarr_8113 = 207;
+			var inlarr_8211 = 209;
+			var inlarr_839 = 212;
+			var inlarr_849 = 214;
+			var inlarr_859 = 217;
+			var inlarr_869 = 219;
+			var inlarr_879 = 222;
+			var inlarr_889 = 224;
+			var inlarr_899 = 227;
+			var inlarr_909 = 229;
+			var inlarr_9113 = 232;
+			var inlarr_9211 = 235;
+			var inlarr_939 = 237;
+			var inlarr_949 = 240;
+			var inlarr_959 = 242;
+			var inlarr_969 = 245;
+			var inlarr_979 = 247;
+			var inlarr_989 = 250;
+			var inlarr_999 = 252;
+			var inlarr_1009 = 255;
+			var color1 = inlarr_159;
+			tmp = -16777216 | color1 << 16 | soft4 << 8 | color1;
+			break;
+		case 5:
+			var inlarr_010 = 0;
+			var inlarr_140 = 48;
+			var inlarr_240 = 80;
+			var inlarr_340 = 128;
+			var inlarr_440 = 10;
+			var inlarr_540 = 13;
+			var inlarr_640 = 15;
+			var inlarr_740 = 18;
+			var inlarr_840 = 20;
+			var inlarr_940 = 23;
+			var inlarr_1010 = 25;
+			var inlarr_1114 = 28;
+			var inlarr_1212 = 31;
+			var inlarr_1310 = 33;
+			var inlarr_1410 = 36;
+			var inlarr_1510 = 38;
+			var inlarr_1610 = 41;
+			var inlarr_1710 = 43;
+			var inlarr_1810 = 46;
+			var inlarr_1910 = 48;
+			var inlarr_2010 = 51;
+			var inlarr_2114 = 54;
+			var inlarr_2212 = 56;
+			var inlarr_2310 = 59;
+			var inlarr_2410 = 61;
+			var inlarr_2510 = 64;
+			var inlarr_2610 = 66;
+			var inlarr_2710 = 69;
+			var inlarr_2810 = 71;
+			var inlarr_2910 = 74;
+			var inlarr_3010 = 76;
+			var inlarr_3114 = 79;
+			var inlarr_3212 = 82;
+			var inlarr_3310 = 84;
+			var inlarr_3410 = 87;
+			var inlarr_3510 = 89;
+			var inlarr_3610 = 92;
+			var inlarr_3710 = 94;
+			var inlarr_3810 = 97;
+			var inlarr_3910 = 99;
+			var inlarr_4010 = 102;
+			var inlarr_4114 = 105;
+			var inlarr_4212 = 107;
+			var inlarr_4310 = 110;
+			var inlarr_4410 = 112;
+			var inlarr_4510 = 115;
+			var inlarr_4610 = 117;
+			var inlarr_4710 = 120;
+			var inlarr_4810 = 122;
+			var inlarr_4910 = 125;
+			var inlarr_5010 = 127;
+			var inlarr_5114 = 130;
+			var inlarr_5212 = 133;
+			var inlarr_5310 = 135;
+			var inlarr_5410 = 138;
+			var inlarr_5510 = 140;
+			var inlarr_5610 = 143;
+			var inlarr_5710 = 145;
+			var inlarr_5810 = 148;
+			var inlarr_5910 = 150;
+			var inlarr_6010 = 153;
+			var inlarr_6114 = 156;
+			var inlarr_6212 = 158;
+			var inlarr_6310 = 161;
+			var inlarr_6410 = 163;
+			var inlarr_6510 = 166;
+			var inlarr_6610 = 168;
+			var inlarr_6710 = 171;
+			var inlarr_6810 = 173;
+			var inlarr_6910 = 176;
+			var inlarr_7010 = 178;
+			var inlarr_7114 = 181;
+			var inlarr_7212 = 186;
+			var inlarr_7310 = 189;
+			var inlarr_7410 = 191;
+			var inlarr_7510 = 194;
+			var inlarr_7610 = 196;
+			var inlarr_7710 = 199;
+			var inlarr_7810 = 201;
+			var inlarr_7910 = 201;
+			var inlarr_8010 = 204;
+			var inlarr_8114 = 207;
+			var inlarr_8212 = 209;
+			var inlarr_8310 = 212;
+			var inlarr_8410 = 214;
+			var inlarr_8510 = 217;
+			var inlarr_8610 = 219;
+			var inlarr_8710 = 222;
+			var inlarr_8810 = 224;
+			var inlarr_8910 = 227;
+			var inlarr_9010 = 229;
+			var inlarr_9114 = 232;
+			var inlarr_9212 = 235;
+			var inlarr_9310 = 237;
+			var inlarr_9410 = 240;
+			var inlarr_9510 = 242;
+			var inlarr_9610 = 245;
+			var inlarr_9710 = 247;
+			var inlarr_9810 = 250;
+			var inlarr_9910 = 252;
+			var inlarr_10010 = 255;
+			var soft5 = inlarr_1010;
+			var inlarr_011 = 0;
+			var inlarr_150 = 48;
+			var inlarr_250 = 80;
+			var inlarr_350 = 128;
+			var inlarr_450 = 10;
+			var inlarr_550 = 13;
+			var inlarr_650 = 15;
+			var inlarr_750 = 18;
+			var inlarr_850 = 20;
+			var inlarr_950 = 23;
+			var inlarr_1011 = 25;
+			var inlarr_1115 = 28;
+			var inlarr_1213 = 31;
+			var inlarr_1311 = 33;
+			var inlarr_1411 = 36;
+			var inlarr_1511 = 38;
+			var inlarr_1611 = 41;
+			var inlarr_1711 = 43;
+			var inlarr_1811 = 46;
+			var inlarr_1911 = 48;
+			var inlarr_2011 = 51;
+			var inlarr_2115 = 54;
+			var inlarr_2213 = 56;
+			var inlarr_2311 = 59;
+			var inlarr_2411 = 61;
+			var inlarr_2511 = 64;
+			var inlarr_2611 = 66;
+			var inlarr_2711 = 69;
+			var inlarr_2811 = 71;
+			var inlarr_2911 = 74;
+			var inlarr_3011 = 76;
+			var inlarr_3115 = 79;
+			var inlarr_3213 = 82;
+			var inlarr_3311 = 84;
+			var inlarr_3411 = 87;
+			var inlarr_3511 = 89;
+			var inlarr_3611 = 92;
+			var inlarr_3711 = 94;
+			var inlarr_3811 = 97;
+			var inlarr_3911 = 99;
+			var inlarr_4011 = 102;
+			var inlarr_4115 = 105;
+			var inlarr_4213 = 107;
+			var inlarr_4311 = 110;
+			var inlarr_4411 = 112;
+			var inlarr_4511 = 115;
+			var inlarr_4611 = 117;
+			var inlarr_4711 = 120;
+			var inlarr_4811 = 122;
+			var inlarr_4911 = 125;
+			var inlarr_5011 = 127;
+			var inlarr_5115 = 130;
+			var inlarr_5213 = 133;
+			var inlarr_5311 = 135;
+			var inlarr_5411 = 138;
+			var inlarr_5511 = 140;
+			var inlarr_5611 = 143;
+			var inlarr_5711 = 145;
+			var inlarr_5811 = 148;
+			var inlarr_5911 = 150;
+			var inlarr_6011 = 153;
+			var inlarr_6115 = 156;
+			var inlarr_6213 = 158;
+			var inlarr_6311 = 161;
+			var inlarr_6411 = 163;
+			var inlarr_6511 = 166;
+			var inlarr_6611 = 168;
+			var inlarr_6711 = 171;
+			var inlarr_6811 = 173;
+			var inlarr_6911 = 176;
+			var inlarr_7011 = 178;
+			var inlarr_7115 = 181;
+			var inlarr_7213 = 186;
+			var inlarr_7311 = 189;
+			var inlarr_7411 = 191;
+			var inlarr_7511 = 194;
+			var inlarr_7611 = 196;
+			var inlarr_7711 = 199;
+			var inlarr_7811 = 201;
+			var inlarr_7911 = 201;
+			var inlarr_8011 = 204;
+			var inlarr_8115 = 207;
+			var inlarr_8213 = 209;
+			var inlarr_8311 = 212;
+			var inlarr_8411 = 214;
+			var inlarr_8511 = 217;
+			var inlarr_8611 = 219;
+			var inlarr_8711 = 222;
+			var inlarr_8811 = 224;
+			var inlarr_8911 = 227;
+			var inlarr_9011 = 229;
+			var inlarr_9115 = 232;
+			var inlarr_9213 = 235;
+			var inlarr_9311 = 237;
+			var inlarr_9411 = 240;
+			var inlarr_9511 = 242;
+			var inlarr_9611 = 245;
+			var inlarr_9711 = 247;
+			var inlarr_9811 = 250;
+			var inlarr_9911 = 252;
+			var inlarr_10011 = 255;
+			var color2 = inlarr_1511;
+			tmp = -16777216 | soft5 << 16 | color2 << 8 | color2;
+			break;
+		}
+		this.overColor = tmp;
+	}
 	,circleOut: function(g,cx,cy) {
 		kha_graphics2_GraphicsExtension.drawCircle(g,cx,cy,this.radiusOutline,this.thick);
 	}
@@ -1553,15 +2773,15 @@ fullK_components_Common.prototype = {
 		var dh = this.dia + this.thick * 2;
 		var db = dy + dh;
 		if(highlight == i) {
-			g.set_color(this.lowRed);
+			g.set_color(this.overColor);
 			g.fillRect(dx,dy,dw,dh);
-			g.set_color(this.lowWhite);
+			g.set_color(this.outColor);
 			g.drawRect(dx,dy,dw,dh,this.thick);
 		} else {
-			g.set_color(this.lowWhite);
+			g.set_color(this.outColor);
 			g.fillRect(dx,dy,dw,dh);
 		}
-		g.set_color(-1);
+		g.set_color(this.mainColor);
 		return { x : dx, y : dy, r : dr, b : db};
 	}
 	,hitAreaRenderV: function(i,highlight,g,cx,cy,wid) {
@@ -1572,19 +2792,22 @@ fullK_components_Common.prototype = {
 		var dh = wid + this.thick * 2;
 		var db = dy + dh;
 		if(highlight == i) {
-			g.set_color(this.lowRed);
+			g.set_color(this.overColor);
 			g.fillRect(dx,dy,dw,dh);
-			g.set_color(this.lowWhite);
+			g.set_color(this.outColor);
 			g.drawRect(dx,dy,dw,dh,this.thick);
 		} else {
-			g.set_color(this.lowWhite);
+			g.set_color(this.outColor);
 			g.fillRect(dx,dy,dw,dh);
 		}
-		g.set_color(-1);
+		g.set_color(this.mainColor);
 		return { x : dx, y : dy, r : dr, b : db};
 	}
 	,dy: function() {
 		return this.dia + this.gapH;
+	}
+	,dx: function() {
+		return (this.dia + this.gapH) * 1.8;
 	}
 	,__class__: fullK_components_Common
 };
@@ -1678,22 +2901,24 @@ fullK_components_DragGraphic.prototype = {
 			break;
 		case 1:
 			if(this.highlight != -1) {
-				g.set_color(this.common.lowRed);
+				g.set_color(this.common.overColor);
 				g.fillRect(this.x / this.scale,this.y / this.scale,this.width / this.scale,this.height / this.scale);
-				g.set_color(this.common.lowWhite);
+				g.set_color(this.common.outColor);
 				g.drawRect(this.x / this.scale,this.y / this.scale,this.width / this.scale,this.height / this.scale,this.common.thick / this.scale);
-				g.set_color(-1);
+				g.set_color(this.common.mainColor);
 			}
+			g.set_color(-1);
 			g.drawImage(this.image,this.x / this.scale,this.y / this.scale);
+			g.set_color(this.common.mainColor);
 			break;
 		case 2:
 			if(this.highlight != -1) {
-				g.set_color(this.common.lowRed);
+				g.set_color(this.common.overColor);
 			} else {
-				g.set_color(this.common.lowWhite);
+				g.set_color(this.common.outColor);
 			}
 			g.fillRect(Math.round(this.x / this.scale - this.spaceW),Math.round(this.y / this.scale),Math.round(this.width / this.scale),Math.round(this.height / this.scale));
-			g.set_color(-1);
+			g.set_color(this.common.mainColor);
 			g.drawString(this.label,Math.round(this.x / this.scale),Math.round(this.y / this.scale));
 			break;
 		}
@@ -1720,6 +2945,135 @@ fullK_components_DragGraphic.prototype = {
 		}
 	}
 	,__class__: fullK_components_DragGraphic
+};
+var fullK_components_RGBsliders = function(x_,y_,wid) {
+	if(y_ == null) {
+		y_ = 100;
+	}
+	if(x_ == null) {
+		x_ = 100;
+	}
+	this.allSlides = [];
+	this.orientation = true;
+	var _gthis = this;
+	this.x = x_;
+	this.y = y_;
+	this.rCommon = new fullK_components_Common();
+	this.rCommon.mainColor = -52429;
+	this.rCommon.overColorSetup(0);
+	this.gCommon = new fullK_components_Common();
+	this.gCommon.mainColor = -13369549;
+	this.gCommon.overColorSetup(1);
+	this.bCommon = new fullK_components_Common();
+	this.bCommon.mainColor = -13421569;
+	this.bCommon.overColorSetup(2);
+	this.rSlider = new fullK_components_SliderBars(x_,y_,this.rCommon);
+	this.gSlider = new fullK_components_SliderBars(x_,y_,this.gCommon);
+	this.bSlider = new fullK_components_SliderBars(x_,y_,this.bCommon);
+	this.allSlides = [this.rSlider,this.gSlider,this.bSlider];
+	var _g = 0;
+	var _g1 = this.allSlides;
+	while(_g < _g1.length) {
+		var slider = _g1[_g];
+		++_g;
+		slider.slidees = [{ min : 0., max : 100., value : 100., flip : false, clampInteger : true}];
+		slider.widths = [wid];
+		slider.sliderOver = function(id) {
+			haxe_Log.trace("over",{ fileName : "fullK/components/RGBsliders.hx", lineNumber : 39, className : "fullK.components.RGBsliders", methodName : "new"});
+		};
+		slider.sliderChange = function(id1,value) {
+			_gthis.colorSet();
+		};
+	}
+};
+$hxClasses["fullK.components.RGBsliders"] = fullK_components_RGBsliders;
+fullK_components_RGBsliders.__name__ = true;
+fullK_components_RGBsliders.prototype = {
+	rSlider: null
+	,gSlider: null
+	,bSlider: null
+	,rCommon: null
+	,gCommon: null
+	,bCommon: null
+	,x: null
+	,y: null
+	,orientation: null
+	,sliderOver: null
+	,sliderChange: null
+	,allSlides: null
+	,values: function(r,g,b) {
+		this.rSlider.slidees[0].value = r;
+		this.gSlider.slidees[0].value = g;
+		this.bSlider.slidees[0].value = b;
+	}
+	,colorSet: function() {
+		if(this.sliderChange != null) {
+			this.sliderChange(-16777216 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][this.rSlider.slidees[0].value | 0] << 16 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][this.gSlider.slidees[0].value | 0] << 8 | [0,48,80,128,10,13,15,18,20,23,25,28,31,33,36,38,41,43,46,48,51,54,56,59,61,64,66,69,71,74,76,79,82,84,87,89,92,94,97,99,102,105,107,110,112,115,117,120,122,125,127,130,133,135,138,140,143,145,148,150,153,156,158,161,163,166,168,171,173,176,178,181,186,189,191,194,196,199,201,201,204,207,209,212,214,217,219,222,224,227,229,232,235,237,240,242,245,247,250,252,255][this.bSlider.slidees[0].value | 0]);
+		}
+	}
+	,upCheck: function(px,py) {
+		var _g = 0;
+		var _g1 = this.allSlides;
+		while(_g < _g1.length) {
+			var slider = _g1[_g];
+			++_g;
+			slider.upCheck(px,py);
+		}
+	}
+	,hitCheck: function(px,py) {
+		var _g = 0;
+		var _g1 = this.allSlides;
+		while(_g < _g1.length) {
+			var slider = _g1[_g];
+			++_g;
+			slider.hitCheck(px,py);
+		}
+	}
+	,hitOver: function(px,py) {
+		var _g = 0;
+		var _g1 = this.allSlides;
+		while(_g < _g1.length) {
+			var slider = _g1[_g];
+			++_g;
+			slider.hitOver(px,py);
+		}
+	}
+	,renderView: function(g) {
+		this.rSlider.x = this.x;
+		this.rSlider.y = this.y;
+		var x2 = this.x;
+		var y2 = this.y;
+		switch(this.orientation) {
+		case false:
+			var _this = this.rCommon;
+			x2 += (_this.dia + _this.gapH) * 1.8;
+			this.gSlider.x = x2;
+			this.gSlider.y = y2;
+			var _this1 = this.bCommon;
+			x2 += (_this1.dia + _this1.gapH) * 1.8;
+			this.bSlider.x = x2;
+			this.bSlider.y = y2;
+			break;
+		case true:
+			var _this2 = this.rCommon;
+			y2 += (_this2.dia + _this2.gapH) * 0.75;
+			this.gSlider.x = x2;
+			this.gSlider.y = y2;
+			var _this3 = this.bCommon;
+			y2 += (_this3.dia + _this3.gapH) * 0.75;
+			this.bSlider.x = x2;
+			this.bSlider.y = y2;
+			break;
+		}
+		var _g1 = 0;
+		var _g2 = this.allSlides;
+		while(_g1 < _g2.length) {
+			var slider = _g2[_g1];
+			++_g1;
+			slider.renderView(g);
+		}
+	}
+	,__class__: fullK_components_RGBsliders
 };
 var fullK_components_SliderBars = function(x_,y_,common_) {
 	if(y_ == null) {
@@ -1825,15 +3179,15 @@ fullK_components_SliderBars.prototype = {
 					var dh = wid + this.common.dia + _this.thick * 2;
 					var db = dy + dh;
 					if(this.highlight == i) {
-						g.set_color(_this.lowRed);
+						g.set_color(_this.overColor);
 						g.fillRect(dx,dy,dw1,dh);
-						g.set_color(_this.lowWhite);
+						g.set_color(_this.outColor);
 						g.drawRect(dx,dy,dw1,dh,_this.thick);
 					} else {
-						g.set_color(_this.lowWhite);
+						g.set_color(_this.outColor);
 						g.fillRect(dx,dy,dw1,dh);
 					}
-					g.set_color(-1);
+					g.set_color(_this.mainColor);
 					tmp[i] = { x : dx, y : dy, r : dr, b : db};
 				}
 				g.drawLine(cx,cy,cx,cy + wid,this.common.thick);
@@ -1889,15 +3243,15 @@ fullK_components_SliderBars.prototype = {
 					var dh1 = _this2.dia + _this2.thick * 2;
 					var db1 = dy1 + dh1;
 					if(this.highlight == i) {
-						g.set_color(_this2.lowRed);
+						g.set_color(_this2.overColor);
 						g.fillRect(dx1,dy1,dw3,dh1);
-						g.set_color(_this2.lowWhite);
+						g.set_color(_this2.outColor);
 						g.drawRect(dx1,dy1,dw3,dh1,_this2.thick);
 					} else {
-						g.set_color(_this2.lowWhite);
+						g.set_color(_this2.outColor);
 						g.fillRect(dx1,dy1,dw3,dh1);
 					}
-					g.set_color(-1);
+					g.set_color(_this2.mainColor);
 					tmp1[i] = { x : dx1, y : dy1, r : dr1, b : db1};
 				}
 				var _this3 = this.common;
@@ -2194,7 +3548,7 @@ fullK_components_ViewOptions.prototype = {
 		if(this.visible == false) {
 			return;
 		}
-		g.set_color(-1);
+		g.set_color(this.common.mainColor);
 		var cx = this.x;
 		var cy = this.y;
 		var font = g.get_font();
@@ -2221,15 +3575,15 @@ fullK_components_ViewOptions.prototype = {
 				var dh = _this.dia + _this.thick * 2;
 				var db = dy + dh;
 				if(this.highlight == i) {
-					g.set_color(_this.lowRed);
+					g.set_color(_this.overColor);
 					g.fillRect(dx,dy,dw,dh);
-					g.set_color(_this.lowWhite);
+					g.set_color(_this.outColor);
 					g.drawRect(dx,dy,dw,dh,_this.thick);
 				} else {
-					g.set_color(_this.lowWhite);
+					g.set_color(_this.outColor);
 					g.fillRect(dx,dy,dw,dh);
 				}
-				g.set_color(-1);
+				g.set_color(_this.mainColor);
 				tmp[i] = { x : dx, y : dy, r : dr, b : db};
 			}
 			switch(this.optionType) {

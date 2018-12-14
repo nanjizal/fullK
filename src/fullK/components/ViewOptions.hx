@@ -35,7 +35,7 @@ class ViewOptions {
     }
     public function renderView( g: Graphics ){
         if( visible == false ) return;
-        g.color = Color.White;
+        g.color = common.mainColor;
         var cx = x;
         var cy = y;
         var font = g.font;

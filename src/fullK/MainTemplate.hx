@@ -24,7 +24,7 @@ import fullK.browser.FullScreen;
 import kha.WindowOptions;
 import kha.WindowMode;
 import kha.Window;
-
+import fullK.components.DragGraphic;
 #if js
 import js.Browser;
 import js.html.CanvasElement;
@@ -34,30 +34,52 @@ class MainTemplate {
     public var interaction:      fullK.Interaction;
     public var font:             Font;
     public var backgroundColor = 0xFF202020;
+    var dragging: Bool;
+    var renderViews =       new Array<Graphics->Void>();
+    var rollOvers   =       new Array<Float->Float->Void>();
+    var drags       =       new Array<DragGraphic>();
+    var downChecks  =       new Array<Float->Float->Void>();
+    var upChecks    =       new Array<Float->Float->Void>(); 
     public
     function setup(){
         trace( 'override setup' );
     }
     public
-    function render2D( g2: Graphics ){
-        trace( 'override render2D' );
+    function render2D( g: Graphics ){
+        for( i in 0...renderViews.length ) renderViews[ i ]( g );
     }
     public
     function over(){
-        trace( 'override over' );
-    }
-    public
-    function down(){
-        trace( 'override down' );
-    }
-    public
-    function up(){
-        trace( 'override up' );
+        for( i in 0...rollOvers.length ) rollOvers[ i ]( interaction.mouseX, interaction.mouseY );
     }
     public 
     function move(){
-        trace( 'override move' );
+        for( i in 0...rollOvers.length ) rollOvers[ i ]( interaction.mouseX, interaction.mouseY );
     }
+    public
+    function down(){
+        var mx = interaction.mouseX;
+        var my = interaction.mouseY;
+        var drag: DragGraphic;
+        for( i in 0...drags.length ){
+            drag = drags[ i ];
+            var hit = drag.hitCheck( mx, my );
+            if( hit ){
+                interaction.dragItem = cast drag;
+                renderViews = toLast( renderViews, drag.renderView );
+                dragging = true;
+            }
+        }
+        for( i in 0...downChecks.length ) downChecks[ i ]( mx, my );
+    }
+    public
+    function up(){
+        var mx = interaction.mouseX;
+        var my = interaction.mouseY;
+        dragging = false;
+        for( i in 0...upChecks.length ) upChecks[ i ]( mx, my );
+    }
+
     public static 
     function main() {
         FullScreen.setup();
@@ -102,6 +124,19 @@ class MainTemplate {
         // DO NOT REMOVE:
        System.notifyOnFrames( function ( framebuffer ) { render( framebuffer[0] ); } ); // newer Kha setup
        //System.notifyOnRender( function ( framebuffer ) { render( framebuffer ); } );
+    }
+    // moves specific item to end so it's accessed last ( like render function to render last )
+    public
+    function toLast<T>( arr: Array<T>, top: T ): Array<T> {
+        var temp = new Array<T>();
+        var j = 0;
+        var t: T;
+        for( i in 0...arr.length ){
+            t = arr[ i ];
+            if( t != top ) temp[ j++ ] = t;
+        }
+        temp[ j++ ] = top;
+        return temp;
     }
     inline
     function render( framebuffer: Framebuffer ){

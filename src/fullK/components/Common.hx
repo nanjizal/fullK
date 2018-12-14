@@ -16,6 +16,15 @@ typedef HitArea = {
     var b: Float;
 }
 @:enum
+abstract OverColors( Int ) to Int from Int {
+    var RedOver = 0;
+    var GreenOver = 1;
+    var BlueOver = 2;
+    var YellowOver = 3;
+    var MagentaOver = 4;
+    var CyanOver = 5;
+}
+@:enum
 abstract OptionType( Int ) to Int from Int {
     var ROUND           = 0;
     var SQUARE          = 1;
@@ -35,14 +44,33 @@ class Common {
     public var gapH = 16.;
     public var dia: Float;
     public var diaInner: Float;
-    public var lowRed: Int;
-    public var lowWhite: Int;
+    public var overColor: Int;
+    public var outColor: Int;
+    public var mainColor: Int;
     public function new(){
         font = Assets.fonts.OpenSans_Regular;
         dia = radiusOutline*2;
         diaInner = radiusInner*2;
-        lowRed = ColorHelper.percentRedSoft( 15, 10 );
-        lowWhite = ColorHelper.percentWhite( 15 );
+        mainColor = Color.White;
+        overColor = ColorHelper.percentRedSoft( 15, 10 );
+        outColor = ColorHelper.percentWhite( 15 );
+    }
+    public
+    function overColorSetup( overCol: OverColors ){
+        overColor = switch( overCol ){
+            case RedOver:
+                ColorHelper.percentRedSoft( 15, 10 );
+            case GreenOver:
+                ColorHelper.percentGreenSoft( 15, 10 );
+            case BlueOver:
+                ColorHelper.percentBlueSoft( 15, 10 );
+            case YellowOver:
+                ColorHelper.percentYellowSoft( 15, 10 );
+            case MagentaOver:
+                ColorHelper.percentMagentaSoft( 15, 10 );
+            case CyanOver:
+                ColorHelper.percentCyanSoft( 15, 10 );
+        }
     }
     inline public
     function circleOut( g: Graphics, cx: Float, cy: Float ){
@@ -125,15 +153,15 @@ class Common {
         var dh = dia + thick*2;
         var db = dy + dh;
         if( highlight == i ) { 
-            g.color = lowRed;
+            g.color = overColor;
             g.fillRect( dx, dy, dw, dh );
-            g.color = lowWhite;
+            g.color = outColor;
             g.drawRect( dx, dy, dw, dh, thick );
         } else {
-            g.color = lowWhite;
+            g.color = outColor;
             g.fillRect( dx, dy, dw, dh );
         }
-        g.color = Color.White;
+        g.color = mainColor;
         return {  x: dx, y: dy, r: dr , b: db };
     }
     inline public
@@ -148,20 +176,24 @@ class Common {
         var dh = wid + thick*2;
         var db = dy + dh;
         if( highlight == i ) { 
-            g.color = lowRed;
+            g.color = overColor;
             g.fillRect( dx, dy, dw, dh );
-            g.color = lowWhite;
+            g.color = outColor;
             g.drawRect( dx, dy, dw, dh, thick );
         } else {
-            g.color = lowWhite;
+            g.color = outColor;
             g.fillRect( dx, dy, dw, dh );
         }
-        g.color = Color.White;
+        g.color = mainColor;
         return {  x: dx, y: dy, r: dr , b: db };
     }
     
     inline public
     function dy():Float {
         return dia + gapH;
+    }
+    inline public
+    function dx():Float {
+        return dy()*1.8;
     }
 }

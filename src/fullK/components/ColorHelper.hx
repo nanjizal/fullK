@@ -26,6 +26,10 @@ class ColorHelper{
         return argb( 0xFF, v, v, v );
     }
     public static inline
+    function rgbPercent( rPercent: Int, gPercent: Int, bPercent: Int ){
+        return argb( 0xFF, percentHex[ rPercent ], percentHex[ gPercent ], percentHex[ bPercent ] );
+    }
+    public static inline
     function argb( a: Int, r: Int, g: Int, b: Int ){
         return a << 24 | r << 16 | g << 8 | b;
     }
@@ -63,5 +67,23 @@ class ColorHelper{
     function percentBlueSoft( bPercent: Int, percentSoft: Int ){
         var soft = percentHex[ percentSoft ];
         return argb( 0xFF, soft, soft, percentHex[ bPercent ] );
+    }
+    public static inline
+    function percentYellowSoft( bPercent: Int, percentSoft: Int ){
+        var soft = percentHex[ percentSoft ];
+        var color = percentHex[ bPercent ];
+        return argb( 0xFF, color, color, soft );
+    }
+    public static inline
+    function percentMagentaSoft( bPercent: Int, percentSoft: Int ){
+        var soft = percentHex[ percentSoft ];
+        var color = percentHex[ bPercent ];
+        return argb( 0xFF, color, soft, color );
+    }
+    public static inline
+    function percentCyanSoft( bPercent: Int, percentSoft: Int ){
+        var soft = percentHex[ percentSoft ];
+        var color = percentHex[ bPercent ];
+        return argb( 0xFF, soft, color, color );
     }
 }
