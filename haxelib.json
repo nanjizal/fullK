@@ -1,0 +1,12 @@
+{
+    "name"         : "fullK",
+    "url"          : "https://github.com/nanjizal/fullK#fullK",
+    "license"      : "MIT",
+    "tags"         : ["fullK"],
+    "description"  : "fullK",
+    "version"      : "0.0.1",
+    "releasenote"  : "See https://github.com/nanjizal/fullK/blob/master/CHANGELOG.md",
+    "classPath"    : "src",
+    "contributors" : ["nanjizal"],
+    "dependencies" : {}
+}
